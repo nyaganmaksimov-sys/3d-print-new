@@ -8,18 +8,14 @@
   const categoryButtons=[['all','Все'],['home','Для дома'],['auto','Авто'],['tech','Электроника'],['decor','Декор'],['office','Офис'],['kitchen','Кухня'],['mechanical','Механика'],['hobby','Хобби'],['gifts','Подарки'],['printer','3D-принтеры']];
   filters.innerHTML=categoryButtons.map(([id,label],i)=>`<button class="${i===0?'active':''}" data-filter="${id}">${label}</button>`).join('');
 
-  // На странице каталога всегда должна быть только одна поисковая строка.
+  // На главной странице поиск не нужен: поиск и полный каталог находятся на отдельной странице catalog.html.
   document.querySelectorAll('.catalog-search-wrap, .catalog-search').forEach(el=>el.closest('.catalog-search-wrap')?.remove() || el.remove());
-  const searchWrap=document.createElement('div');
-  searchWrap.className='catalog-search-wrap';
-  searchWrap.innerHTML=`<div class="catalog-search"><span>⌕</span><input id="catalog-search" type="search" placeholder="Поиск модели, марки автомобиля или детали…" autocomplete="off"><button type="button" id="clear-search">×</button></div><div class="search-hint">Популярное: <button type="button" data-query="BMW">BMW</button><button type="button" data-query="Toyota">Toyota</button><button type="button" data-query="клипса">клипса</button><button type="button" data-query="органайзер">органайзер</button></div>`;
-  filters.parentNode.insertBefore(searchWrap,filters);
 
-  const allProducts=[...grid.querySelectorAll('.product')],pageSize=8;let activeFilter='all',query='',visibleCount=pageSize;
+  const allProducts=[...grid.querySelectorAll('.product')],pageSize=4;let activeFilter='all',query='',visibleCount=pageSize;
   const empty=document.createElement('div');empty.className='catalog-empty';empty.textContent='По вашему запросу ничего не найдено.';grid.after(empty);
-  const more=document.createElement('a');more.className='catalog-more btn primary';more.href='catalog.html';more.textContent='Открыть полный каталог →';empty.after(more);
+  const more=document.createElement('a');more.className='catalog-more btn primary';more.href='catalog.html';more.textContent='Открыть полный каталог моделей →';empty.after(more);
   const matches=()=>allProducts.filter(card=>{const cat=card.dataset.cat||'';const text=(card.dataset.name||card.textContent).toLowerCase();return(activeFilter==='all'||cat===activeFilter)&&(!query||text.includes(query));});
-  const render=()=>{const list=matches();allProducts.forEach(c=>c.style.display='none');list.slice(0,visibleCount).forEach(c=>c.style.display='');empty.style.display=list.length?'none':'';more.style.display=list.length>visibleCount?'inline-flex':'none';};
+  const render=()=>{const list=matches();allProducts.forEach(c=>c.style.display='none');list.slice(0,visibleCount).forEach(c=>c.style.display='');empty.style.display=list.length?'none':'';more.style.display=list.length?'inline-flex':'none';};
   filters.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{filters.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');activeFilter=b.dataset.filter;visibleCount=pageSize;render();}));
-  const input=searchWrap.querySelector('#catalog-search');input.addEventListener('input',()=>{query=input.value.trim().toLowerCase();visibleCount=pageSize;render();});searchWrap.querySelector('#clear-search').addEventListener('click',()=>{input.value='';query='';visibleCount=pageSize;render();input.focus();});searchWrap.querySelectorAll('[data-query]').forEach(b=>b.addEventListener('click',()=>{input.value=b.dataset.query;query=b.dataset.query.toLowerCase();visibleCount=pageSize;render();input.focus();}));render();
+  render();
 })();
