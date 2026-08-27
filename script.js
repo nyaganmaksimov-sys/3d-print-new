@@ -61,3 +61,71 @@ document.getElementById('order-form').addEventListener('submit', (event) => {
   };
   requestAnimationFrame(tick);
 })();
+
+/* Калькулятор стоимости. Базовые тарифы сейчас демонстрационные и легко заменяются на реальные. */
+(() => {
+  const style = document.createElement('style');
+  style.textContent = `
+    .calculator{position:relative;overflow:hidden}.calculator:before{content:"CALCULATOR / ESTIMATE";position:absolute;right:24px;top:24px;font:700 9px monospace;letter-spacing:.15em;color:#079bd766}.calc-box{display:grid;grid-template-columns:1.15fr .85fr;background:#fff;border:1px solid #cbd8e7;border-radius:20px;box-shadow:0 18px 55px #49698b14;overflow:hidden}.calc-form{padding:38px;border-right:1px solid #d8e1ec}.calc-result{padding:38px;background:linear-gradient(145deg,#f3fbff,#fff);display:flex;flex-direction:column;justify-content:center;position:relative}.calc-result:after{content:"";position:absolute;width:210px;height:210px;right:-100px;bottom:-110px;border:1px solid #079bd733;border-radius:50%;box-shadow:0 0 0 25px #079bd70a,0 0 0 50px #079bd706}.calc-title{font-size:20px;font-weight:800;letter-spacing:-.04em;margin:0 0 24px}.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.calc-field{display:flex;flex-direction:column;gap:7px}.calc-field.full{grid-column:1/-1}.calc-field label{font-size:11px;font-weight:800;color:#526174}.calc-field input,.calc-field select{width:100%;margin:0;background:#f9fbfd;border:1px solid #cbd8e7;border-radius:8px;color:#172033;padding:12px;font:13px Manrope}.calc-field input:focus,.calc-field select:focus{outline:2px solid #079bd733;border-color:#079bd7}.calc-range{accent-color:#079bd7;padding:0!important;background:transparent!important;border:0!important}.calc-range-row{display:flex;justify-content:space-between;font:700 10px monospace;color:#738197}.calc-qty{display:flex;align-items:center;gap:10px}.calc-qty button{width:34px;height:34px;border:1px solid #cbd8e7;background:#fff;border-radius:7px;font-size:18px;cursor:pointer}.calc-qty button:hover{background:#eefaff}.calc-qty input{text-align:center}.calc-note{font-size:10px;color:#8490a1;margin:17px 0 0}.calc-total-label{font-size:11px;font-weight:800;letter-spacing:.12em;color:#008fc8;text-transform:uppercase}.calc-total{font-size:54px;line-height:1;letter-spacing:-.07em;font-weight:800;margin:10px 0 16px;color:#171719}.calc-per{font-size:12px;color:#667085}.calc-breakdown{border-top:1px solid #d8e1ec;margin-top:25px;padding-top:18px;display:grid;gap:9px;font-size:11px;color:#667085}.calc-line{display:flex;justify-content:space-between}.calc-line strong{color:#202936}.calc-cta{margin-top:25px;width:100%}.calc-file{border:1px dashed #aebfd1!important;background:#f8fbfe!important;cursor:pointer}.calc-file::file-selector-button{border:0;background:#e9f5fb;color:#008fc8;border-radius:6px;padding:7px 9px;margin-right:8px;font:700 10px Manrope;cursor:pointer}@media(max-width:850px){.calc-box{grid-template-columns:1fr}.calc-form{border-right:0;border-bottom:1px solid #d8e1ec}.calc-result{min-height:320px}}@media(max-width:520px){.calc-form,.calc-result{padding:25px}.calc-grid{grid-template-columns:1fr}.calc-field.full{grid-column:auto}.calc-total{font-size:44px}}
+  `;
+  document.head.appendChild(style);
+  const catalog = document.querySelector('#catalog');
+  const order = document.querySelector('#order');
+  if (!catalog || !order) return;
+  const section = document.createElement('section');
+  section.className = 'section calculator';
+  section.id = 'calculator';
+  section.innerHTML = `
+    <div class="section-head"><p class="eyebrow">РАСЧЁТ СТОИМОСТИ</p><h2>Сколько будет стоить<br>изготовление?</h2><p>Укажите параметры модели и получите ориентировочную стоимость. Точный расчёт зависит от геометрии и файла модели.</p></div>
+    <div class="calc-box">
+      <div class="calc-form"><h3 class="calc-title">Параметры изготовления</h3><div class="calc-grid">
+        <div class="calc-field full"><label for="calc-tech">Технология</label><select id="calc-tech"><option value="fdm">FDM 3D-печать</option><option value="resin">Фотополимерная печать</option><option value="cnc">ЧПУ-фрезеровка</option></select></div>
+        <div class="calc-field"><label for="calc-material">Материал</label><select id="calc-material"></select></div>
+        <div class="calc-field"><label for="calc-qty">Количество, шт.</label><div class="calc-qty"><button type="button" id="qty-minus">−</button><input id="calc-qty" type="number" min="1" max="999" value="1"><button type="button" id="qty-plus">+</button></div></div>
+        <div class="calc-field"><label for="calc-weight">Вес детали, г</label><input id="calc-weight" type="number" min="1" value="80"></div>
+        <div class="calc-field"><label for="calc-time">Время изготовления, мин</label><input id="calc-time" type="number" min="1" value="240"></div>
+        <div class="calc-field full"><label for="calc-infill">Заполнение / сложность <b id="complexity-value">20%</b></label><input class="calc-range" id="calc-infill" type="range" min="10" max="100" step="5" value="20"><div class="calc-range-row"><span>ЭКОНОМ</span><span>СТАНДАРТ</span><span>МАКСИМУМ</span></div></div>
+        <div class="calc-field full"><label for="calc-file">3D-модель (необязательно)</label><input class="calc-file" id="calc-file" type="file" accept=".stl,.3mf,.obj"></div>
+      </div><p class="calc-note">* Расчёт предварительный. Тарифы можно настроить под ваши реальные цены и материалы.</p></div>
+      <div class="calc-result"><span class="calc-total-label">Ориентировочная стоимость</span><div class="calc-total" id="calc-total">1 380 ₽</div><div class="calc-per" id="calc-per">1 шт. · без доставки</div><div class="calc-breakdown"><div class="calc-line"><span>Материал</span><strong id="calc-material-cost">960 ₽</strong></div><div class="calc-line"><span>Работа станка</span><strong id="calc-machine-cost">270 ₽</strong></div><div class="calc-line"><span>Подготовка</span><strong id="calc-setup-cost">150 ₽</strong></div><div class="calc-line"><span>Количество</span><strong id="calc-qty-cost">× 1</strong></div></div><a class="btn primary calc-cta" href="#order">Заказать изготовление</a></div>
+    </div>`;
+  catalog.after(section);
+
+  const tech = document.getElementById('calc-tech');
+  const material = document.getElementById('calc-material');
+  const qty = document.getElementById('calc-qty');
+  const weight = document.getElementById('calc-weight');
+  const time = document.getElementById('calc-time');
+  const infill = document.getElementById('calc-infill');
+  const complexity = document.getElementById('complexity-value');
+  const total = document.getElementById('calc-total');
+  const per = document.getElementById('calc-per');
+  const materialCost = document.getElementById('calc-material-cost');
+  const machineCost = document.getElementById('calc-machine-cost');
+  const setupCost = document.getElementById('calc-setup-cost');
+  const qtyCost = document.getElementById('calc-qty-cost');
+  const tariffs = {
+    fdm:{materials:[['PLA','PLA'],['PETG','PETG'],['ABS/ASA','ABS']], material:12, minute:2.2, setup:150},
+    resin:{materials:[['Standard Resin','RESIN'],['Tough Resin','TOUGH'],['Detail Resin','DETAIL']], material:25, minute:3.8, setup:250},
+    cnc:{materials:[['Фанера / дерево','WOOD'],['Акрил','ACRYLIC'],['Алюминий','ALU']], material:4.5, minute:6.5, setup:500}
+  };
+  const rub = n => `${Math.round(n).toLocaleString('ru-RU')} ₽`;
+  const calculate = () => {
+    const data = tariffs[tech.value];
+    const w = Math.max(1, Number(weight.value)||1), t = Math.max(1, Number(time.value)||1), q = Math.max(1, Math.min(999, Number(qty.value)||1)), c = Number(infill.value)||20;
+    complexity.textContent = `${c}%`;
+    const factor = 0.9 + c/100*0.35;
+    const m = w * data.material * factor, machine = t * data.minute, setup = data.setup, single = m + machine + setup;
+    const discount = q >= 10 ? .82 : q >= 5 ? .9 : q >= 3 ? .95 : 1, grand = single * q * discount;
+    total.textContent = rub(grand); per.textContent = `${q} шт. · без доставки${discount<1?' · серийная скидка':''}`;
+    materialCost.textContent = rub(m*q*discount); machineCost.textContent = rub(machine*q*discount); setupCost.textContent = rub(setup); qtyCost.textContent = `× ${q}`;
+  };
+  const updateMaterials = () => {
+    const data = tariffs[tech.value]; material.innerHTML = data.materials.map(x=>`<option value="${x[1]}">${x[0]}</option>`).join('');
+    if(tech.value==='cnc'){weight.value=150;time.value=90;infill.value=60}else if(tech.value==='resin'){weight.value=35;time.value=180;infill.value=30}else{weight.value=80;time.value=240;infill.value=20} calculate();
+  };
+  tech.addEventListener('change',updateMaterials); [weight,time,qty,infill].forEach(el=>el.addEventListener('input',calculate));
+  document.getElementById('qty-minus').addEventListener('click',()=>{qty.value=Math.max(1,(Number(qty.value)||1)-1);calculate()});
+  document.getElementById('qty-plus').addEventListener('click',()=>{qty.value=Math.min(999,(Number(qty.value)||1)+1);calculate()});
+  updateMaterials();
+})();
