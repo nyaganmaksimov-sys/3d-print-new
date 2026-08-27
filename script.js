@@ -42,20 +42,22 @@ document.getElementById('order-form').addEventListener('submit', (event) => {
   });
 })();
 
-/* Индикатор печати: логотип постепенно появляется снизу вверх, а слой и процент меняются. */
+/* Индикатор печати синхронизирован с 8-секундным циклом анимации логотипа. */
 (() => {
   const progress = document.querySelector('.progress-value');
   const layer = document.querySelector('.layer-value');
   if (!progress || !layer) return;
-  const cycle = 6000;
-  const tick = () => {
-    const elapsed = performance.now() % cycle;
-    const t = elapsed / cycle;
-    const value = Math.round(18 + t * 80);
-    const layerValue = Math.round(38 + t * 172);
-    progress.textContent = `${Math.min(value,98)}%`;
-    layer.textContent = layerValue;
+  const cycle = 8000;
+  const start = performance.now();
+  const tick = (now) => {
+    const t = ((now - start) % cycle) / cycle;
+    let value;
+    if (t < .10) value = 3 + Math.round(t / .10 * 5);
+    else if (t < .78) value = 8 + Math.round((t - .10) / .68 * 87);
+    else value = 95 + Math.round((t - .78) / .22 * 5);
+    progress.textContent = `${Math.min(value, 100)}%`;
+    layer.textContent = Math.min(210, Math.round(12 + value * 1.98));
+    requestAnimationFrame(tick);
   };
-  tick();
-  setInterval(tick, 80);
+  requestAnimationFrame(tick);
 })();
