@@ -3,11 +3,44 @@
   if (!grid) return;
   const filters = document.querySelector('.filters');
   const isFullCatalog = /(^|\/)catalog\.html$/i.test(window.location.pathname);
-  const extraModels=[['Держатель пульта кондиционера','home','Для дома · FDM'],['Кронштейн для сушилки белья','home','Для дома · FDM'],['Подставка для монитора VESA 100×100','office','Для офиса · FDM'],['Ручка холодильника Electrolux','home','Для дома · FDM'],['Форма для печенья «Алфавит и цифры»','kitchen','Кухня · FDM'],['Крышка для пакетов','kitchen','Кухня · FDM'],['Кашпо / цветочный горшок','decor','Декор · FDM'],['Держатель паяльника','tech','Электроника · FDM'],['Ползунок кнопки','tech','Электроника · FDM'],['Корпус для радиодеталей','tech','Электроника · FDM'],['Скульптура для декора','decor','Искусство · Resin'],['Брелок','gifts','Подарки · FDM'],['Кулон / медальон','gifts','Подарки · Resin'],['Органайзер для рабочего стола','office','Для офиса · FDM'],['Шестерёнка механизма','mechanical','Механические части · FDM'],['Корпус механизма','mechanical','Механические части · FDM'],['Крепёжная деталь','mechanical','Механические части · FDM'],['Крепление для робота','hobby','Хобби · FDM'],['Деталь для 3D-принтера','printer','Детали для 3D-принтеров · FDM'],['Охлаждение для 3D-принтера','printer','Детали для 3D-принтеров · FDM']];
+  const extraModels=[
+    ['Держатель пульта кондиционера','home','Для дома · FDM','https://3dtoday.ru/3d-models/for-home/accessories/derzhatel-pulta-kondicionera'],
+    ['Кронштейн для сушилки белья','home','Для дома · FDM','https://3dtoday.ru/3d-models/for-home/accessories/kronshtein-dlya-sushilki-belya'],
+    ['Подставка для монитора VESA 100×100','office','Для офиса · FDM','https://3dtoday.ru/3d-models/for-office/accessories/podstavka-dlya-monitora-s-krepleniem-pod-vesa-100-x-100'],
+    ['Ручка холодильника Electrolux','home','Для дома · FDM','https://3dtoday.ru/3d-models/for-home/appliances/ruchka-xolodilnika-electrolux'],
+    ['Форма для печенья «Алфавит и цифры»','kitchen','Кухня · FDM','https://3dtoday.ru/3d-models/for-home/kitchen'],
+    ['Крышка для пакетов','kitchen','Кухня · FDM','https://3dtoday.ru/3d-models/for-home/kitchen'],
+    ['Кашпо / цветочный горшок','decor','Декор · FDM','https://3dtoday.ru/3d-models/for-home/decoration'],
+    ['Держатель паяльника','tech','Электроника · FDM','https://3dtoday.ru/3d-models/gadgets'],
+    ['Ползунок кнопки','tech','Электроника · FDM','https://3dtoday.ru/3d-models/gadgets'],
+    ['Корпус для радиодеталей','tech','Электроника · FDM','https://3dtoday.ru/3d-models/gadgets'],
+    ['Скульптура для декора','decor','Искусство · Resin','https://3dtoday.ru/3d-models/art'],
+    ['Брелок','gifts','Подарки · FDM','https://3dtoday.ru/3d-models/gifts'],
+    ['Кулон / медальон','gifts','Подарки · Resin','https://3dtoday.ru/3d-models/jewelry'],
+    ['Органайзер для рабочего стола','office','Для офиса · FDM','https://3dtoday.ru/3d-models/for-office/organizers/nastennyi-organaizer'],
+    ['Шестерёнка механизма','mechanical','Механические части · FDM','https://3dtoday.ru/3d-models/mechanical-parts'],
+    ['Корпус механизма','mechanical','Механические части · FDM','https://3dtoday.ru/3d-models/mechanical-parts'],
+    ['Крепёжная деталь','mechanical','Механические части · FDM','https://3dtoday.ru/3d-models/mechanical-parts/fasteners'],
+    ['Крепление для робота','hobby','Хобби · FDM','https://3dtoday.ru/3d-models/khobbi/robototexnika'],
+    ['Деталь для 3D-принтера','printer','Детали для 3D-принтеров · FDM','https://3dtoday.ru/3d-models/3d-printers'],
+    ['Охлаждение для 3D-принтера','printer','Детали для 3D-принтеров · FDM','https://3dtoday.ru/3d-models/3d-printers'],
+    ['Настенный органайзер','office','Бесплатная · FDM · 3DToday','https://3dtoday.ru/3d-models/for-office/organizers/nastennyi-organaizer'],
+    ['Органайзер под сверла и биты','office','Бесплатная · FDM · 3DToday','https://3dtoday.ru/3d-models/for-office/organizers/organaizer-pod-sverla-i-bity'],
+    ['Настольная лампа','decor','Бесплатная · FDM · 3DToday','https://3dtoday.ru/3d-models/for-home/lighting/nastolnaya-lampa'],
+    ['Держатель телефона','tech','Бесплатная · FDM · 3DToday','https://3dtoday.ru/3d-models/gadgets/phones/derzhatel_telefona_phone_holder'],
+    ['Колпачок передней ступицы LADA VESTA','auto','Бесплатная · FDM · 3DToday','https://3dtoday.ru/3d-models/khobbi/avtomobili/kolpachok-peredney-stupitsy-lada-vesta'],
+    ['Заглушка панели LADA Vesta','auto','Бесплатная · FDM · 3DToday','https://3dtoday.ru/3d-models/khobbi/avtomobili/zagluska-paneli-lada-vesta'],
+    ['Органайзер для рукоделия','hobby','Платная · FDM · 3DToday','https://3dtoday.ru/market/sport-and-rest/hobby/organaizer-dlya-rukodeliya'],
+    ['Органайзер для ниток и фурнитуры','office','Платная · FDM · 3DToday','https://3dtoday.ru/market/for-office/organizers/organaizer-dlya-nitok-i-furnitury'],
+    ['Органайзер в подлокотник Pajero Sport 3','auto','Платная · FDM · 3DToday','https://3dtoday.ru/market/khobbi/avtomobili/organaizer-v-podlokotnik-pajero-sport-3-avtomat-kartoxolder'],
+    ['Органайзер для Toyota Mark 2 90','auto','Платная · FDM · 3DToday','https://3dtoday.ru/market/for-office/organizers/organaizer-dlya-toyota-mark-2-90'],
+    ['Автомобиль Lada Iskra 1:10','auto','Платная · FDM · 3DToday','https://3dtoday.ru/market/khobbi/avtomobili/avtomobil-lada-iskra-lada-iskra'],
+    ['Toyota Mark 2 JZX/GX110 1:24','hobby','Платная · FDM · 3DToday','https://3dtoday.ru/market/khobbi/avtomobili/toyota-mark-2-jzx-gx-110-3d-model-dlya-pecati']
+  ];
   const objectClass=n=>{n=n.toLowerCase();if(n.includes('шестер'))return'model-gear';if(n.includes('клипс')||n.includes('защёл')||n.includes('защел'))return'model-clip';if(n.includes('ручк'))return'model-handle';if(n.includes('кронштейн')||n.includes('креплен')||n.includes('держател'))return'model-bracket';if(n.includes('органайзер')||n.includes('контейнер'))return'model-box';if(n.includes('кашпо')||n.includes('горшок')||n.includes('скульптур'))return'model-decor';return'model-part'};
 
   if(isFullCatalog){
-    grid.insertAdjacentHTML('beforeend',extraModels.map(([name,cat,meta],i)=>`<article class="product extra-product" data-cat="${cat}" data-name="${name.toLowerCase()}" data-type="print"><div class="product-image placeholder model-placeholder ${objectClass(name)}"><div class="model-stage"><div class="model-object"></div><div class="model-gridline"></div><span class="model-axis">X&nbsp;&nbsp;Y&nbsp;&nbsp;Z</span></div><div class="model-label"><b>${cat.toUpperCase()}</b><small>3D PREVIEW ${String(i+51).padStart(2,'0')}</small></div></div><div class="product-info"><span>${meta}</span><h3>${name}</h3><div class="model-credit"><small>Источник: 3D-PRINT</small><small>Категория: готовое изделие</small></div><div class="model-actions"><a href="index.html#order">Заказать печать →</a><b>Рассчитать стоимость →</b></div></div></article>`).join(''));
+    grid.insertAdjacentHTML('beforeend',extraModels.map(([name,cat,meta,url],i)=>`<article class="product extra-product" data-cat="${cat}" data-name="${name.toLowerCase()}" data-type="${/\/market(?:\/|$)/i.test(url)?'paid':'free'}"><div class="product-image placeholder model-placeholder ${objectClass(name)}"><div class="model-stage"><div class="model-object"></div><div class="model-gridline"></div><span class="model-axis">3DTODAY · ${/\/market(?:\/|$)/i.test(url)?'PAID':'FREE'} ${String(i+51).padStart(2,'0')}</span></div><div class="model-label"><b>${cat.toUpperCase()}</b><small>Фото и оригинал — на 3DToday</small></div></div><div class="product-info"><span>${meta}</span><h3>${name}</h3><div class="model-credit"><small>Источник: 3DToday</small><small>Оригинал и фото: на странице модели</small></div><div class="model-actions"><a href="${url}" target="_blank" rel="noopener noreferrer">Фото и модель на 3DToday →</a><b>Рассчитать стоимость →</b></div></div></article>`).join(''));
   }
 
   const allProducts=[...grid.querySelectorAll('.product')];
@@ -28,8 +61,6 @@
 
   if(!filters) return;
 
-  // Определяем тип предложения по первоисточнику. 3DToday /market — платные модели;
-  // /3d-models — бесплатные модели; /shop — готовые распечатанные изделия, которые можно заказать.
   const detectType=card=>{
     const href=card.querySelector('.model-actions a[href]')?.getAttribute('href')||'';
     if(card.dataset.type==='print'||/\/shop(?:\/|$)/i.test(href)) return 'print';
@@ -59,7 +90,6 @@
     }
   });
 
-  // Полный каталог: убираем старую кнопку «Показать ещё» и всегда показываем весь список.
   const oldMore=document.getElementById('catalogMore');
   if(oldMore) oldMore.remove();
 
