@@ -10,32 +10,34 @@
 <body>
   <header class="header">
     <a class="logo" href="#top">3D<span>-PRINT</span></a>
-    <nav>
-      <a href="#services">Услуги</a>
-      <a href="#catalog">Каталог</a>
-      <a href="#equipment">Оборудование</a>
-      <a href="#contacts">Контакты</a>
-    </nav>
+    <nav><a href="#services">Услуги</a><a href="#catalog">Каталог</a><a href="#equipment">Оборудование</a><a href="#contacts">Контакты</a></nav>
     <a class="header-btn" href="#order">Заказать</a>
   </header>
 
   <main id="top">
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">3D-ПРОИЗВОДСТВО · НА ЗАКАЗ</p>
+        <p class="eyebrow">3D-ПЕЧАТЬ · ПРОИЗВОДСТВО · НА ЗАКАЗ</p>
         <h1>Создаём детали,<br><em>которые работают.</em></h1>
         <p class="hero-text">FDM и фотополимерная 3D-печать, ЧПУ-фрезеровка и изготовление изделий по вашим моделям.</p>
-        <div class="actions">
-          <a class="btn primary" href="#order">Рассчитать заказ</a>
-          <a class="btn ghost" href="#catalog">Смотреть каталог</a>
-        </div>
-        <div class="stats">
-          <div><strong>10+</strong><span>FDM-принтеров</span></div>
-          <div><strong>3D</strong><span>технологии производства</span></div>
-          <div><strong>1</strong><span>точка — от идеи до детали</span></div>
-        </div>
+        <div class="actions"><a class="btn primary" href="#order">Рассчитать заказ</a><a class="btn ghost" href="#catalog">Смотреть каталог</a></div>
+        <div class="stats"><div><strong>10+</strong><span>FDM-принтеров</span></div><div><strong>3D</strong><span>технологии производства</span></div><div><strong>1</strong><span>точка — от идеи до детали</span></div></div>
       </div>
-      <div class="hero-art"><div class="orb"></div><div class="grid"></div><div class="floating-card">AD5X <b>×10</b><small>парк печати</small></div></div>
+
+      <div class="hero-art">
+        <div class="blueprint blueprint-a">R20<br><span>Ø48</span></div>
+        <div class="blueprint blueprint-b">80<br><span>120</span></div>
+        <div class="blueprint blueprint-c">A<br><span>SECTION</span></div>
+        <div class="printer-scene" aria-label="Анимированная 3D-модель принтера">
+          <div class="printer-back"></div>
+          <div class="printer-frame frame-left"></div><div class="printer-frame frame-right"></div><div class="printer-frame frame-top"></div>
+          <div class="printer-bed"><div class="printed-part"><i></i><i></i><i></i><i></i></div></div>
+          <div class="gantry"><div class="rail"></div><div class="print-head"><div class="fan"></div><div class="nozzle"></div><div class="filament"></div></div></div>
+          <div class="control-panel"><span>3D-PRINT</span><b>PRINTING</b><small>68%</small></div>
+          <div class="print-glow"></div>
+        </div>
+        <div class="printer-status"><span class="status-dot"></span><div><b>Печать выполняется</b><small>AD5X · 68% · слой 142</small></div><strong>LIVE</strong></div>
+      </div>
     </section>
 
     <section class="section" id="services">
@@ -68,11 +70,7 @@
       </div>
     </section>
 
-    <section class="section order" id="order">
-      <div class="order-box"><div><p class="eyebrow">ЕСТЬ 3D-МОДЕЛЬ?</p><h2>Загрузите файл —<br>обсудим производство.</h2><p>Пришлите STL, 3MF или OBJ. Мы оценим возможность изготовления и подготовим расчёт.</p></div>
-        <form id="order-form"><label>Ваше имя<input required type="text" placeholder="Как к вам обращаться?"></label><label>Контакт<input required type="text" placeholder="Телефон или Telegram"></label><label>Файл модели<input type="file" accept=".stl,.3mf,.obj"></label><label>Комментарий<textarea placeholder="Что нужно изготовить?"></textarea></label><button class="btn primary" type="submit">Отправить заявку</button><small id="form-note">Нажимая кнопку, вы отправляете заявку на расчёт.</small></form>
-      </div>
-    </section>
+    <section class="section order" id="order"><div class="order-box"><div><p class="eyebrow">ЕСТЬ 3D-МОДЕЛЬ?</p><h2>Загрузите файл —<br>обсудим производство.</h2><p>Пришлите STL, 3MF или OBJ. Мы оценим возможность изготовления и подготовим расчёт.</p></div><form id="order-form"><label>Ваше имя<input required type="text" placeholder="Как к вам обращаться?"></label><label>Контакт<input required type="text" placeholder="Телефон или Telegram"></label><label>Файл модели<input type="file" accept=".stl,.3mf,.obj"></label><label>Комментарий<textarea placeholder="Что нужно изготовить?"></textarea></label><button class="btn primary" type="submit">Отправить заявку</button><small id="form-note">Нажимая кнопку, вы отправляете заявку на расчёт.</small></form></div></section>
   </main>
 
   <footer id="contacts"><div class="logo">3D<span>-PRINT</span></div><p>3D-печать · Фотополимер · ЧПУ</p><a href="#order">Оставить заявку →</a><small>© 2026 3D-PRINT</small></footer>
