@@ -12,4 +12,16 @@
   const apply=filter=>grid.querySelectorAll('.product').forEach(p=>p.style.display=filter==='all'||p.dataset.cat===filter?'':'none');
   buttons.forEach(button=>button.onclick=()=>{buttons.forEach(b=>b.classList.remove('active'));button.classList.add('active');apply(button.dataset.filter);});
   apply('all');
+
+  /* Оборудование: три полноценные карточки в одну строку на широких экранах. */
+  const layoutStyle=document.createElement('style');
+  layoutStyle.textContent=`
+    .equipment-list{grid-template-columns:repeat(3,minmax(0,1fr))!important;align-items:stretch}
+    .equipment-card{display:flex!important;align-items:center;gap:14px;min-width:0}
+    .equipment-card .number{flex:0 0 auto;min-width:38px}
+    .equipment-card .equip-icon{flex:0 0 66px!important;margin:0 4px 0 0!important}
+    .equipment-card>div:last-child{min-width:0}
+    @media(max-width:850px){.equipment-list{grid-template-columns:1fr!important}.equipment-card{display:flex!important}}
+  `;
+  document.head.appendChild(layoutStyle);
 })();
