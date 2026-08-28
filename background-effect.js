@@ -1,12 +1,16 @@
-/* Common site enhancements must load on every device. */
+/* Shared site enhancements: loaded from both the main page and catalog. */
 (() => {
-  const load = src => { const s=document.createElement('script'); s.src=src; s.defer=false; document.head.appendChild(s); };
+  const load = src => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.defer = false;
+    document.head.appendChild(s);
+  };
   load('service-modal.js');
   load('catalog-fix.js');
-  const css=document.createElement('link'); css.rel='stylesheet'; css.href='service-modal-fullscreen.css'; document.head.appendChild(css);
 })();
 
-/* Interactive blueprint background is desktop-only. */
+/* Interactive blueprint background on pointer devices. */
 (() => {
   if (window.matchMedia('(pointer: coarse)').matches) return;
   const canvas = document.createElement('canvas');
@@ -25,11 +29,7 @@
   addEventListener('pointerleave',()=>{target.x=-1000;target.y=-1000});
   function draw(){
     mouse.x+=(target.x-mouse.x)*.08;mouse.y+=(target.y-mouse.y)*.08;ctx.clearRect(0,0,w,h);
-    if(mouse.x>-500){
-      const glow=ctx.createRadialGradient(mouse.x,mouse.y,0,mouse.x,mouse.y,170);glow.addColorStop(0,'rgba(7,155,215,.10)');glow.addColorStop(.45,'rgba(7,155,215,.035)');glow.addColorStop(1,'rgba(7,155,215,0)');ctx.fillStyle=glow;ctx.fillRect(mouse.x-170,mouse.y-170,340,340);
-      ctx.strokeStyle='rgba(7,155,215,.18)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mouse.x-95,mouse.y);ctx.lineTo(mouse.x+95,mouse.y);ctx.moveTo(mouse.x,mouse.y-95);ctx.lineTo(mouse.x,mouse.y+95);ctx.stroke();
-      ctx.strokeStyle='rgba(7,155,215,.12)';ctx.beginPath();ctx.arc(mouse.x,mouse.y,52,0,Math.PI*2);ctx.stroke();
-    }
+    if(mouse.x>-500){const glow=ctx.createRadialGradient(mouse.x,mouse.y,0,mouse.x,mouse.y,170);glow.addColorStop(0,'rgba(7,155,215,.10)');glow.addColorStop(.45,'rgba(7,155,215,.035)');glow.addColorStop(1,'rgba(7,155,215,0)');ctx.fillStyle=glow;ctx.fillRect(mouse.x-170,mouse.y-170,340,340);ctx.strokeStyle='rgba(7,155,215,.18)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(mouse.x-95,mouse.y);ctx.lineTo(mouse.x+95,mouse.y);ctx.moveTo(mouse.x,mouse.y-95);ctx.lineTo(mouse.x,mouse.y+95);ctx.stroke();ctx.strokeStyle='rgba(7,155,215,.12)';ctx.beginPath();ctx.arc(mouse.x,mouse.y,52,0,Math.PI*2);ctx.stroke()}
     for(let i=marks.length-1;i>=0;i--){const m=marks[i];m.life++;const p=m.life/m.max,alpha=(1-p)*.48;if(p>=1){marks.splice(i,1);continue}ctx.save();ctx.translate(m.x,m.y);ctx.rotate(m.angle+p*.3);ctx.strokeStyle=`rgba(7,155,215,${alpha})`;ctx.lineWidth=1;ctx.strokeRect(-m.size/2,-m.size/2,m.size,m.size);ctx.beginPath();ctx.moveTo(-m.size-8,0);ctx.lineTo(m.size+8,0);ctx.moveTo(0,-m.size-8);ctx.lineTo(0,m.size+8);ctx.stroke();if(m.label){ctx.font='700 8px monospace';ctx.fillStyle=`rgba(0,143,200,${alpha})`;ctx.fillText(m.label,m.size/2+8,-m.size/2-4)}ctx.restore()}
     requestAnimationFrame(draw)
   }
