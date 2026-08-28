@@ -32,4 +32,5 @@
   const load = src => { const s=document.createElement('script'); s.src=src; s.defer=false; document.head.appendChild(s); };
   load('service-modal.js');
   load('catalog-fix.js');
+  const css=document.createElement('link'); css.rel='stylesheet'; css.href='service-modal-fullscreen.css'; document.head.appendChild(css);
 })();
