@@ -33,17 +33,18 @@ jobs:
 
       - name: Install 3D-ARTPRINT favicon
         run: |
-          if [ -f favicon32.b64 ]; then
-            base64 -d favicon32.b64 > favicon.ico
-            rm -f favicon32.b64 favicon-new.txt
-          fi
+          # favicon.ico is already stored in the repository.
+          # The old favicon32.b64 mechanism was removed because the file
+          # is no longer part of the repository and caused the commit step to fail.
+          test -f favicon.ico
 
       - name: Commit generated files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/*.png index.html favicon.ico
-          git add -u favicon32.b64 favicon-new.txt
+          # Stage deletions/changes without naming files that may not exist.
+          git add -u
           git diff --cached --quiet && exit 0
-          git commit -m "Install 3D-ARTPRINT favicon"
+          git commit -m "Generate artwork and keep favicon"
           git push
