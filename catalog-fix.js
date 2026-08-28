@@ -8,6 +8,19 @@
   });
   document.title = document.title.replace(/3D-PRINT/g, '3D-ARTPRINT');
 
+  const logoStyle = document.createElement('style');
+  logoStyle.textContent = `
+    /* Catalog: compact centered logo */
+    .header{position:relative!important;min-height:78px!important}
+    .header .brand{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;z-index:3!important;display:flex!important;align-items:center!important;justify-content:center!important;width:auto!important;margin:0!important}
+    .header .brand img{width:150px!important;height:auto!important;max-height:48px!important;object-fit:contain!important;display:block!important}
+    .header nav{padding-right:175px!important}
+    .header .header-btn{margin-left:auto!important}
+    footer>img{width:150px!important;height:auto!important;max-height:48px!important;object-fit:contain!important}
+    @media(max-width:760px){.header{min-height:68px!important}.header .brand img{width:120px!important;max-height:40px!important}.header nav{display:none!important}.header .header-btn{margin-left:auto!important}}
+  `;
+  document.head.appendChild(logoStyle);
+
   const input = document.getElementById('catalogSearchTop');
   const clear = document.getElementById('clearSearchTop');
   const grid = document.querySelector('.catalog-grid');
