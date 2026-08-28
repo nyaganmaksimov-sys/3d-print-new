@@ -32,11 +32,12 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          block = re.compile(r'/\* Service image sizing: compact with visible breathing room \*/.*?@media \(max-width:760px\)\{.*?\}\s*', re.S)
-          s = block.sub('', s)
+          bad = s.find('\\n/* Service image sizing: compact with visible breathing room */')
+          if bad != -1:
+              end = s.find('</style>', bad)
+              s = s[:bad] + s[end:]
           marker = '</style>'
           css = '''
 /* Service image sizing: compact with visible breathing room */
