@@ -13,4 +13,29 @@ body.theme-light .modal{background:rgba(30,45,60,.38)!important}.theme-light .mo
 const wrap=document.createElement('label');wrap.className='theme-toggle';wrap.title='Переключить светлую / тёмную тему';wrap.innerHTML='<span>☾</span><input type="checkbox" aria-label="Светлая тема"><span class="theme-switch"></span><span>☀</span>';document.body.appendChild(wrap);const input=wrap.querySelector('input');
 function apply(theme){document.body.classList.toggle('theme-light',theme==='light');input.checked=theme==='light';document.documentElement.style.colorScheme=theme;localStorage.setItem(KEY,theme)}input.addEventListener('change',()=>apply(input.checked?'light':'dark'));apply(initial);
 const wow=document.createElement('script');wow.src='wow.js?v='+Date.now();wow.async=false;document.body.appendChild(wow);
+
+/* Service cards + fullscreen service modal: final override is injected AFTER service-modal.js. */
+const serviceImageFix=document.createElement('style');
+serviceImageFix.id='service-image-final-fix';
+serviceImageFix.textContent=`
+.service{overflow:hidden!important}
+.service-img{width:68%!important;max-width:68%!important;height:auto!important;aspect-ratio:1/1!important;object-fit:contain!important;padding:6px!important;margin:18px auto 10px!important;box-sizing:border-box!important;border-radius:12px!important}
+.service:hover .service-img{transform:scale(1.01)!important}
+.service-fullscreen__visual{display:flex!important;align-items:center!important;justify-content:center!important;padding:clamp(24px,4vw,56px)!important;background:#05070b!important;overflow:hidden!important}
+.service-fullscreen__visual img{display:block!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;max-width:76%!important;max-height:76%!important;aspect-ratio:auto!important;object-fit:contain!important;border-radius:18px!important;box-shadow:0 18px 55px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)!important;filter:saturate(1.06) contrast(1.03)!important}
+.service-fullscreen__visual:after{display:none!important}
+.service-fullscreen__glow{inset:20%!important;opacity:.12!important;z-index:0!important}
+.service-fullscreen__visual img{position:relative!important;z-index:1!important}
+@media(max-width:900px){
+ .service-img{width:72%!important;max-width:72%!important;margin:13px auto 7px!important;padding:6px!important}
+ .service-fullscreen__visual{height:34vh!important;min-height:34vh!important;flex:0 0 34vh!important;padding:18px!important}
+ .service-fullscreen__visual img{max-width:82%!important;max-height:82%!important}
+}
+@media(max-width:480px){
+ .service-img{width:70%!important;max-width:70%!important}
+ .service-fullscreen__visual{height:31vh!important;min-height:31vh!important;flex-basis:31vh!important;padding:14px!important}
+ .service-fullscreen__visual img{max-width:84%!important;max-height:84%!important;border-radius:14px!important}
+}
+`;
+document.head.appendChild(serviceImageFix);
 })();
