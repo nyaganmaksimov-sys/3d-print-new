@@ -30,9 +30,9 @@
 
   const css=document.createElement('style');
   css.textContent=`
-    /* Карточки услуг: компактное изображение с отступами и без фоновой панели. */
+    /* Карточки услуг: компактное изображение с отступами, без отдельного фона. */
     .service{display:flex!important;flex-direction:column!important;overflow:hidden!important;position:relative!important}
-    .service-img{display:block!important;width:74%!important;max-width:74%!important;height:auto!important;aspect-ratio:1/1!important;object-fit:contain!important;padding:0!important;margin:18px auto 10px!important;border:0!important;border-radius:10px!important;background:transparent!important;box-sizing:border-box!important;transform:none!important;will-change:transform!important}
+    .service-img{display:block!important;width:74%!important;max-width:74%!important;height:auto!important;aspect-ratio:1/1!important;object-fit:contain!important;padding:0!important;margin:18px auto 10px!important;border:0!important;border-radius:10px!important;background:transparent!important;mix-blend-mode:screen!important;box-sizing:border-box!important;transform:none!important;will-change:transform!important}
     .service-body{flex:1!important;transform:none!important}
     .service:hover .service-img{transform:scale(1.02)!important;filter:saturate(1.08) brightness(1.04)!important}
     .service.s4 h3{font-size:12px!important;line-height:1.08!important}
