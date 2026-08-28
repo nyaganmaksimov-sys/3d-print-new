@@ -59,6 +59,22 @@
     .service-fullscreen__close{position:absolute!important;z-index:10!important;right:28px!important;top:24px!important;width:48px!important;height:48px!important;border-radius:12px!important;border:1px solid rgba(255,255,255,.25)!important;background:rgba(8,11,16,.82)!important;color:#fff!important;font-size:27px!important;cursor:pointer!important;backdrop-filter:blur(8px)!important}
     body.service-modal-open{overflow:hidden!important}
     @media(max-width:900px){.service-fullscreen__card{display:flex!important;flex-direction:column!important;min-height:100dvh!important;height:auto!important;overflow:auto!important}.service-fullscreen__visual{height:34vh!important;min-height:34vh!important;flex:0 0 34vh!important}.service-fullscreen__visual img{min-height:34vh!important}.service-fullscreen__content{padding:30px 22px 38px!important;justify-content:flex-start!important}.service-fullscreen__title{font-size:clamp(36px,10vw,56px)!important}.service-fullscreen__intro{font-size:14px!important}.service-fullscreen__grid{grid-template-columns:1fr!important}.service-fullscreen__action{width:100%!important}.service-fullscreen__close{right:12px!important;top:12px!important}}
+
+    /* WOW-эффект главной: живой свет, 3D-наклон и магнитные кнопки */
+    .service{--mx:50%;--my:50%;--tiltX:0deg;--tiltY:0deg;transform-style:preserve-3d;will-change:transform;background:radial-gradient(circle at var(--mx) var(--my),rgba(0,191,255,.12),transparent 38%),linear-gradient(180deg,#111722,#0b0e14)!important}
+    .service:hover{transform:perspective(900px) rotateX(var(--tiltY)) rotateY(var(--tiltX)) translateY(-8px) scale(1.012)!important;box-shadow:0 28px 70px rgba(0,0,0,.5),0 0 35px rgba(0,191,255,.08)!important}
+    .service-img{transform:translateZ(18px);transition:transform .25s ease,filter .25s ease!important}
+    .service:hover .service-img{filter:saturate(1.12) brightness(1.08);transform:translateZ(28px) scale(1.025)!important}
+    .service-body{transform:translateZ(24px)}
+    .service-link,.btn,.order-btn{transition:transform .18s ease,box-shadow .18s ease,filter .18s ease!important}
+    .service-link:hover,.btn:hover,.order-btn:hover{filter:brightness(1.08);box-shadow:0 10px 28px rgba(0,191,255,.16)}
+    .hero-logo{transition:transform .18s ease-out,filter .3s ease!important;will-change:transform}
+    .hero-logo:hover{filter:drop-shadow(0 22px 55px rgba(0,191,255,.24)) drop-shadow(0 0 22px rgba(255,8,125,.12))!important}
+    .hero{isolation:isolate}
+    .hero:after{content:'';position:absolute;width:280px;height:280px;border-radius:50%;left:var(--hero-x,50%);top:var(--hero-y,45%);transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(0,191,255,.11),rgba(164,92,255,.035) 35%,transparent 70%);filter:blur(18px);pointer-events:none;z-index:-1;transition:left .16s ease-out,top .16s ease-out}
+    .section.reveal-ready{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+    .section.reveal-ready.revealed{opacity:1;transform:none}
+    @media(prefers-reduced-motion:reduce){.service,.hero-logo,.hero:after{transition:none!important;transform:none!important}.section.reveal-ready{opacity:1;transform:none}}
   `;
   document.head.appendChild(css);
   renameCanvasService();
@@ -77,4 +93,52 @@
   document.addEventListener('click',e=>{if(e.target.closest('.service-fullscreen'))return;const button=e.target.closest('[data-open-service]');if(button){const card=button.closest('.service');if(card){e.preventDefault();e.stopPropagation();open(card)}return;}const card=e.target.closest('.service');if(card){e.preventDefault();e.stopPropagation();open(card)}},true);
   modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('.service-fullscreen__close')||e.target.closest('[data-service-close]'))close();if(e.target.closest('.service-fullscreen__action.primary'))close()});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close()});
+
+  /* Карточки услуг реагируют на курсор как лёгкие 3D-объекты. */
+  const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduced){
+    document.querySelectorAll('.service').forEach(card=>{
+      card.addEventListener('pointermove',e=>{
+        const r=card.getBoundingClientRect();
+        const x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
+        card.style.setProperty('--mx',(x*100).toFixed(1)+'%');
+        card.style.setProperty('--my',(y*100).toFixed(1)+'%');
+        card.style.setProperty('--tiltX',((x-.5)*7).toFixed(2)+'deg');
+        card.style.setProperty('--tiltY',((.5-y)*7).toFixed(2)+'deg');
+      },{passive:true});
+      card.addEventListener('pointerleave',()=>{
+        card.style.setProperty('--mx','50%');card.style.setProperty('--my','50%');
+        card.style.setProperty('--tiltX','0deg');card.style.setProperty('--tiltY','0deg');
+      });
+    });
+
+    const hero=document.querySelector('.hero');
+    const logo=document.querySelector('.hero-logo');
+    if(hero&&logo){
+      hero.addEventListener('pointermove',e=>{
+        const r=hero.getBoundingClientRect();
+        const x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+        hero.style.setProperty('--hero-x',(x*100+50).toFixed(1)+'%');
+        hero.style.setProperty('--hero-y',(y*100+50).toFixed(1)+'%');
+        logo.style.transform=`translate3d(${(x*12).toFixed(1)}px,${(y*8).toFixed(1)}px,0)`;
+      },{passive:true});
+      hero.addEventListener('pointerleave',()=>{logo.style.transform='';hero.style.setProperty('--hero-x','50%');hero.style.setProperty('--hero-y','45%')});
+    }
+
+    document.querySelectorAll('.btn,.order-btn').forEach(btn=>{
+      btn.addEventListener('pointermove',e=>{
+        const r=btn.getBoundingClientRect();
+        const x=(e.clientX-(r.left+r.width/2))/r.width*10;
+        const y=(e.clientY-(r.top+r.height/2))/r.height*10;
+        btn.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+      },{passive:true});
+      btn.addEventListener('pointerleave',()=>btn.style.transform='');
+    });
+
+    const sections=document.querySelectorAll('.section');
+    if('IntersectionObserver' in window){
+      const io=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('revealed');io.unobserve(entry.target)}}),{threshold:.08});
+      sections.forEach((s,i)=>{if(i>0){s.classList.add('reveal-ready');io.observe(s)}});
+    }
+  }
 })();
