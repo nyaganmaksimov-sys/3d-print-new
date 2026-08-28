@@ -2,13 +2,13 @@
   if (!/\/catalog\.html$/i.test(location.pathname)) return;
 
   const style = document.createElement('style');
-  style.id = 'catalog-artprint-fix-v3';
+  style.id = 'catalog-artprint-fix-v4';
   style.textContent = `
     /* === CATALOG: exactly the same dark header language as the main page === */
     body{background:#050507!important;color:#f7f8fb!important}
     .header{height:82px!important;min-height:82px!important;position:sticky!important;top:0!important;z-index:1000!important;display:grid!important;grid-template-columns:1fr auto 1fr!important;align-items:center!important;gap:28px!important;padding:0 max(28px,calc((100vw - 1420px)/2))!important;background:rgba(5,5,7,.96)!important;border-bottom:1px solid rgba(255,255,255,.12)!important;backdrop-filter:blur(16px)!important}
     .header .brand{grid-column:2!important;grid-row:1!important;position:static!important;transform:none!important;width:auto!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important;z-index:3!important}
-    .header .brand img{width:150px!important;height:auto!important;max-width:150px!important;max-height:52px!important;object-fit:contain!important;display:block!important}
+    .header .brand img{width:220px!important;height:auto!important;max-width:220px!important;max-height:58px!important;object-fit:contain!important;display:block!important}
     .header nav{grid-column:1!important;grid-row:1!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:28px!important;margin:0!important;padding:0!important}
     .header nav a{font-size:12px!important;font-weight:800!important;color:#c8cbd2!important;text-transform:uppercase!important;transition:.2s!important}
     .header nav a:hover,.header nav a.active{color:#fff!important}
@@ -45,20 +45,20 @@
     .catalog-attribution{background:#0d1219!important;border-color:rgba(255,255,255,.14)!important;color:#8d98a5!important}
     .catalog-attribution a{color:#00bfff!important}
     footer{background:#050507!important;color:#737b86!important;border-color:rgba(255,255,255,.12)!important}
-    footer img{width:150px!important;max-width:150px!important;height:auto!important}
+    footer img{width:200px!important;max-width:200px!important;height:auto!important;max-height:54px!important;object-fit:contain!important}
 
     @media(max-width:900px){
       .header{grid-template-columns:1fr auto 1fr!important;gap:12px!important;padding:0 18px!important}
       .header nav{gap:16px!important}
       .header nav a{font-size:10px!important}
-      .header .brand img{width:135px!important;max-width:135px!important;max-height:46px!important}
+      .header .brand img{width:185px!important;max-width:185px!important;max-height:50px!important}
       .header .header-btn{padding:11px 14px!important;font-size:10px!important}
     }
     @media(max-width:760px){
       .header{height:70px!important;min-height:70px!important;padding:0 14px!important}
       .header nav{display:none!important}
       .header .brand{grid-column:2!important}
-      .header .brand img{width:120px!important;max-width:120px!important;max-height:42px!important}
+      .header .brand img{width:165px!important;max-width:165px!important;max-height:44px!important}
       .header .header-btn{grid-column:3!important;padding:10px 12px!important;font-size:9px!important}
       .catalog-search{height:54px!important;border-radius:9px!important;padding:0 14px!important}
       .catalog-search input{font-size:14px!important}
@@ -67,9 +67,9 @@
   `;
   document.head.appendChild(style);
 
-  // Always use the compact horizontal 3D-ARTPRINT logo in the catalog header.
+  // Use the new banner logo in the centered catalog header and footer.
   document.querySelectorAll('.header .brand img, footer img').forEach(img => {
-    img.src = 'assets/logo-horizontal.png';
+    img.src = 'assets/logo_banner.png';
     img.alt = '3D-ARTPRINT';
   });
   document.title = document.title.replace(/3D-PRINT/g, '3D-ARTPRINT');
