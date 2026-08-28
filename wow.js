@@ -13,7 +13,6 @@
     body{--wow-mx:50vw;--wow-my:50vh}
     body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(420px circle at var(--wow-mx) var(--wow-my),rgba(0,191,255,.045),transparent 70%);mix-blend-mode:screen;transition:background-position .1s linear}
     #wow-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.95}
-    header,main,footer{z-index:2!important}
     .wow-cursor,.wow-cursor-dot{position:fixed;pointer-events:none;z-index:100000;transform:translate(-50%,-50%);border-radius:50%;mix-blend-mode:screen}
     .wow-cursor{width:34px;height:34px;border:1px solid rgba(0,191,255,.65);box-shadow:0 0 18px rgba(0,191,255,.25),inset 0 0 14px rgba(164,92,255,.12);transition:width .2s,height .2s,border-color .2s,box-shadow .2s}
     .wow-cursor-dot{width:5px;height:5px;background:#fff;box-shadow:0 0 12px #00bfff,0 0 25px #ff087d}
@@ -49,6 +48,19 @@
     @media(prefers-reduced-motion:reduce){#wow-canvas,.wow-cursor,.wow-cursor-dot,.wow-progress{display:none!important}.hero-logo{animation:none}.section.reveal-ready{opacity:1;transform:none}.service,.model-card{transform:none!important}}
   `;
   document.head.appendChild(style);
+
+  /* Жёстко ограничиваем изображения услуг: картинка всегда живёт внутри карточки. */
+  const cardFix = document.createElement('style');
+  cardFix.textContent = `
+    .services .service{overflow:hidden!important;min-width:0!important}
+    .services .service-img{display:block!important;width:72%!important;max-width:72%!important;height:auto!important;aspect-ratio:1/1!important;object-fit:contain!important;object-position:center!important;padding:8px!important;margin:12px auto 4px!important;border-radius:10px!important;background:rgba(255,255,255,.025)!important;box-sizing:border-box!important;transform:none!important}
+    .services .service:hover .service-img{transform:scale(1.025)!important;max-width:72%!important}
+    .services .service-body{min-width:0!important;transform:none!important;padding:12px 13px 15px!important}
+    .services .service h3{max-width:100%!important;overflow-wrap:anywhere!important}
+    @media(max-width:1100px){.services .service-img{width:76%!important;max-width:76%!important}}
+    @media(max-width:760px){.services .service-img{width:68%!important;max-width:68%!important;padding:6px!important;margin:8px auto 3px!important}.services .service:hover .service-img{transform:none!important}}
+  `;
+  document.head.appendChild(cardFix);
 
   const progress=document.createElement('div'); progress.className='wow-progress'; document.body.appendChild(progress);
   const canvas=document.createElement('canvas'); canvas.id='wow-canvas'; document.body.prepend(canvas); const ctx=canvas.getContext('2d');
