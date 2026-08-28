@@ -26,3 +26,10 @@
   }
   resize();draw();
 })();
+
+/* Подключаем общие улучшения, не меняя существующую анимацию фона. */
+(() => {
+  const load = src => { const s=document.createElement('script'); s.src=src; s.defer=false; document.head.appendChild(s); };
+  load('service-modal.js');
+  load('catalog-fix.js');
+})();
