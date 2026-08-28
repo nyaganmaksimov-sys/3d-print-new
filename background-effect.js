@@ -1,4 +1,4 @@
-/* Shared site enhancements: loaded from both the main page and catalog. */
+/* Shared site fixes + interactive background. Versioned imports prevent stale GitHub Pages assets. */
 (() => {
   const load = src => {
     const s = document.createElement('script');
@@ -6,8 +6,8 @@
     s.defer = false;
     document.head.appendChild(s);
   };
-  load('service-modal.js');
-  load('catalog-fix.js');
+  load('service-modal.js?v=20260828-3');
+  load('catalog-fix.js?v=20260828-3');
 })();
 
 /* Interactive blueprint background on pointer devices. */
