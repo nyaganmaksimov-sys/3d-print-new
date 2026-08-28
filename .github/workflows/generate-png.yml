@@ -1,0 +1,26 @@
+name: Generate PNG artwork
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  png:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Convert SVG artwork to PNG
+        run: |
+          mkdir -p assets
+          for f in assets/*.svg; do
+            name=$(basename "$f" .svg)
+            convert -background '#050608' -density 120 "$f" -resize 1200x700 "assets/$name.png"
+          done
+      - name: Commit generated PNG files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/*.png
+          git diff --cached --quiet && exit 0
+          git commit -m "Generate PNG artwork assets"
+          git push
