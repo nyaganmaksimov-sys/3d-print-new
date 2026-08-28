@@ -1,0 +1,31 @@
+name: Restore card icons
+
+on:
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: github.event.head_commit.message == 'RESTORE_ICONS_TRIGGER'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore visible card icons
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('service-modal.js')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('mix-blend-mode:screen!important;', '')
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit and remove one-time workflow
+        run: |
+          rm -f .github/workflows/restore-card-icons.yml RESTORE_ICONS_TRIGGER
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add service-modal.js .github/workflows/restore-card-icons.yml RESTORE_ICONS_TRIGGER
+          git commit -m 'Restore visible icons in service cards'
+          git push
