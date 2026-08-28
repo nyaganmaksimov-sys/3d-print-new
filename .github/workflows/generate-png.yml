@@ -1,23 +1,30 @@
 name: Generate PNG artwork
+
 on:
   push:
     branches: [main]
+
 permissions:
   contents: write
+
 jobs:
   png:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Install ImageMagick
         run: sudo apt-get update && sudo apt-get install -y imagemagick
+
       - name: Convert SVG artwork to PNG
         run: |
           mkdir -p assets
+          shopt -s nullglob
           for f in assets/*.svg; do
             name=$(basename "$f" .svg)
-            magick -background '#050608' -density 120 "$f" -resize 1200x700 "assets/$name.png"
+            convert -background '#050608' -density 120 "$f" -resize 1200x700 "assets/$name.png"
           done
+
       - name: Commit generated PNG files
         run: |
           git config user.name "github-actions[bot]"
