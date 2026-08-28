@@ -124,4 +124,8 @@
   const observer = new MutationObserver(() => run());
   observer.observe(grid,{childList:true,subtree:true});
   run();
+
+  const theme = document.createElement('script');
+  theme.src = 'theme.js?v=20260828-1';
+  document.body.appendChild(theme);
 })();
