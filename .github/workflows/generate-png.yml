@@ -32,15 +32,42 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
+          block = re.compile(r'/\* Service image sizing: compact with visible breathing room \*/.*?@media \(max-width:760px\)\{.*?\}\s*', re.S)
+          s = block.sub('', s)
           marker = '</style>'
-          css = r'''\n/* Service image sizing: compact with visible breathing room */\n.modal-card img, .service-modal img, .service-detail img, .service-detail-media img {\n  display:block;\n  width:min(72%, 520px);\n  max-width:520px;\n  height:auto;\n  max-height:420px;\n  object-fit:contain;\n  margin:0 auto 28px;\n  padding:14px;\n  border-radius:16px;\n  background:rgba(255,255,255,.035);\n  border:1px solid rgba(255,255,255,.10);\n  box-shadow:0 18px 50px rgba(0,0,0,.35);\n}\n@media (max-width:760px){\n  .modal-card img, .service-modal img, .service-detail img, .service-detail-media img {\n    width:86%;\n    max-width:420px;\n    max-height:300px;\n    margin-bottom:20px;\n    padding:10px;\n  }\n}\n'''
-          if 'Service image sizing: compact with visible breathing room' not in s:
-              if marker not in s:
-                  raise SystemExit('style marker not found')
-              s = s.replace(marker, css + marker, 1)
-              p.write_text(s, encoding='utf-8')
+          css = '''
+/* Service image sizing: compact with visible breathing room */
+.modal-card img, .service-modal img, .service-detail img, .service-detail-media img {
+  display:block;
+  width:min(72%, 520px);
+  max-width:520px;
+  height:auto;
+  max-height:420px;
+  object-fit:contain;
+  margin:0 auto 28px;
+  padding:14px;
+  border-radius:16px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 18px 50px rgba(0,0,0,.35);
+}
+@media (max-width:760px){
+  .modal-card img, .service-modal img, .service-detail img, .service-detail-media img {
+    width:86%;
+    max-width:420px;
+    max-height:300px;
+    margin-bottom:20px;
+    padding:10px;
+  }
+}
+'''
+          if marker not in s:
+              raise SystemExit('style marker not found')
+          s = s.replace(marker, css + marker, 1)
+          p.write_text(s, encoding='utf-8')
           PY
 
       - name: Commit generated files
