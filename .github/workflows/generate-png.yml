@@ -29,47 +29,7 @@ jobs:
         run: python3 scripts/add_interactive_background.py
 
       - name: Make service images smaller with edge spacing
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          bad = s.find('\\n/* Service image sizing: compact with visible breathing room */')
-          if bad != -1:
-              end = s.find('</style>', bad)
-              s = s[:bad] + s[end:]
-          marker = '</style>'
-          css = '''
-/* Service image sizing: compact with visible breathing room */
-.modal-card img, .service-modal img, .service-detail img, .service-detail-media img {
-  display:block;
-  width:min(72%, 520px);
-  max-width:520px;
-  height:auto;
-  max-height:420px;
-  object-fit:contain;
-  margin:0 auto 28px;
-  padding:14px;
-  border-radius:16px;
-  background:rgba(255,255,255,.035);
-  border:1px solid rgba(255,255,255,.10);
-  box-shadow:0 18px 50px rgba(0,0,0,.35);
-}
-@media (max-width:760px){
-  .modal-card img, .service-modal img, .service-detail img, .service-detail-media img {
-    width:86%;
-    max-width:420px;
-    max-height:300px;
-    margin-bottom:20px;
-    padding:10px;
-  }
-}
-'''
-          if marker not in s:
-              raise SystemExit('style marker not found')
-          s = s.replace(marker, css + marker, 1)
-          p.write_text(s, encoding='utf-8')
-          PY
+        run: python3 scripts/shrink_service_images.py
 
       - name: Commit generated files
         run: |
