@@ -64,98 +64,570 @@ function calc(){const product=products[$('cp-product').value],method=$('cp-metho
 /* EmailJS integration for the order form. */
 (()=>{
 'use strict';
-const SERVICE_ID='service_6xfl2a';
-const TEMPLATE_ID='template_yju0736';
-const PUBLIC_KEY='n8hebGkPhnnvLzaWu';
-let emailReady=null;
+
+const SERVICE_ID = 'service_6xfl2a';
+const TEMPLATE_ID = 'template_yju0736';
+const PUBLIC_KEY = 'n8hebGkPhnnvLzaWu';
+
+let emailReady = null;
+
+/* ---------- EmailJS ---------- */
+
 function loadEmailJS(){
- if(window.emailjs)return Promise.resolve(window.emailjs);
- if(emailReady)return emailReady;
- emailReady=new Promise((resolve,reject)=>{
-   const script=document.createElement('script');
-   script.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
-   script.onload=()=>{try{window.emailjs.init({publicKey:PUBLIC_KEY});resolve(window.emailjs)}catch(err){reject(err)}};
-   script.onerror=()=>reject(new Error('Не удалось загрузить EmailJS'));
-   document.head.appendChild(script);
- });
- return emailReady;
+  if(window.emailjs) return Promise.resolve(window.emailjs);
+  if(emailReady) return emailReady;
+
+  emailReady = new Promise((resolve,reject)=>{
+    const script = document.createElement('script');
+
+    script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+
+    script.onload = ()=>{
+      try{
+        window.emailjs.init({
+          publicKey: PUBLIC_KEY
+        });
+
+        resolve(window.emailjs);
+      }catch(error){
+        reject(error);
+      }
+    };
+
+    script.onerror = ()=>{
+      reject(new Error('Не удалось загрузить EmailJS'));
+    };
+
+    document.head.appendChild(script);
+  });
+
+  return emailReady;
 }
-function value(id){return document.getElementById(id)?.value?.trim()||''}
-function text(id){return document.getElementById(id)?.innerText?.trim()||''}
+
+/* ---------- Helpers ---------- */
+
+function value(id){
+  return document.getElementById(id)?.value?.trim() || '';
+}
+
+function text(id){
+  return document.getElementById(id)?.innerText?.trim() || '';
+}
+
+/* ---------- Calculator data ---------- */
+
 function getCalculatorData(){
- const product=value('cp-product');
- const method=value('cp-method');
- const material=value('cp-material');
- const qty=value('cp-qty')||'1';
- const price=text('cp-price')||'не рассчитана';
- const range=text('cp-range');
- const dims=[value('cp-l'),value('cp-w'),value('cp-h')].filter(Boolean).join(' × ');
- const fill=value('cp-fill');
- const finish=document.getElementById('cp-finish');
- const print=value('cp-print');
- const materialLabel=document.querySelector('[data-material="'+material+'"] span:last-child')?.innerText||material||'не указан';
- const methodLabel=document.querySelector('[data-method="'+method+'"] span:last-child')?.innerText||method||'не указан';
- const productLabel=document.querySelector('[data-product="'+product+'"] span:last-child')?.innerText||product||'не указан';
- return {productLabel,methodLabel,materialLabel,qty,price,range,dims,fill,finish:finish?.selectedOptions?.[0]?.textContent||'Без обработки',print};
+
+  const product = value('cp-product');
+  const method = value('cp-method');
+  const material = value('cp-material');
+
+  const qty = value('cp-qty') || '1';
+
+  const price = text('cp-price') || 'не рассчитана';
+  const range = text('cp-range') || '';
+
+  const l = value('cp-l');
+  const w = value('cp-w');
+  const h = value('cp-h');
+
+  const dims = [l,w,h]
+    .filter(Boolean)
+    .join(' × ');
+
+  const fill = value('cp-fill');
+
+  const finishElement = document.getElementById('cp-finish');
+
+  const finish =
+    finishElement?.selectedOptions?.[0]?.textContent?.trim()
+    || 'Без обработки';
+
+  const print = value('cp-print');
+
+  const materialButton =
+    document.querySelector(`[data-material="${material}"]`);
+
+  const methodButton =
+    document.querySelector(`[data-method="${method}"]`);
+
+  const productButton =
+    document.querySelector(`[data-product="${product}"]`);
+
+  const materialLabel =
+    materialButton?.querySelector('span:last-child')?.innerText?.trim()
+    || material
+    || 'Не указан';
+
+  const methodLabel =
+    methodButton?.querySelector('span:last-child')?.innerText?.trim()
+    || method
+    || 'Не указан';
+
+  const productLabel =
+    productButton?.querySelector('span:last-child')?.innerText?.trim()
+    || product
+    || 'Не указан';
+
+  let fillLabel = '—';
+
+  if(fill){
+    const fillNumber = Number(fill);
+
+    if(!Number.isNaN(fillNumber)){
+      fillLabel = Math.round(fillNumber * 100) + '%';
+    }
+  }
+
+  let printLabel = '—';
+
+  if(print){
+
+    const printButton =
+      document.querySelector(`[data-print="${print}"]`);
+
+    printLabel =
+      printButton?.querySelector('span:last-child')?.innerText?.trim()
+      || print;
+  }
+
+  return {
+    productLabel,
+    methodLabel,
+    materialLabel,
+    qty,
+    price,
+    range,
+    dims: dims || 'Не указан',
+    fillLabel,
+    finish,
+    printLabel
+  };
 }
+
+/* ---------- Build task text ---------- */
+
+function buildCalculatorTask(){
+
+  const c = getCalculatorData();
+
+  return [
+    'Заявка на 3D-печать',
+    '',
+    'ПАРАМЕТРЫ КАЛЬКУЛЯТОРА:',
+    '',
+    `Изделие: ${c.productLabel}`,
+    `Метод изготовления: ${c.methodLabel}`,
+    `Материал / основа: ${c.materialLabel}`,
+    `Размер: ${c.dims}`,
+    `Заполнение: ${c.fillLabel}`,
+    `Постобработка: ${c.finish}`,
+    `Формат принта: ${c.printLabel}`,
+    `Количество: ${c.qty} шт.`,
+    `Стоимость: ${c.price}`,
+    c.range ? `Ориентир: ${c.range}` : ''
+  ]
+  .filter(Boolean)
+  .join('\n');
+}
+
+/* ---------- Put calculator data into "Задача" ---------- */
+
+function updateOrderTask(){
+
+  const taskField = document.getElementById('orderTask');
+
+  if(!taskField) return;
+
+  const existingText = taskField.dataset.userEdited === 'true'
+    ? taskField.value
+    : '';
+
+  const calculatorTask = buildCalculatorTask();
+
+  if(existingText){
+
+    taskField.value =
+      calculatorTask +
+      '\n\nПожелания клиента:\n' +
+      existingText;
+
+  }else{
+
+    taskField.value = calculatorTask;
+
+  }
+}
+
+/*
+ * Запоминаем, редактировал ли пользователь поле "Задача".
+ * Чтобы наши автоматические данные не уничтожали его текст.
+ */
+
+function bindTaskEditing(){
+
+  const taskField = document.getElementById('orderTask');
+
+  if(!taskField) return;
+
+  if(taskField.dataset.taskBound === '1') return;
+
+  taskField.dataset.taskBound = '1';
+
+  taskField.addEventListener('input', ()=>{
+
+    taskField.dataset.userEdited = 'true';
+
+  });
+
+}
+
+/* ---------- Collect order ---------- */
+
 async function sendOrder(form){
- const button=form.querySelector('button[type="submit"]');
- const name=value('orderName');
- const contact=value('orderContact');
- const task=value('orderTask');
- const c=getCalculatorData();
- if(!name||!contact){form.reportValidity();return}
- if(button){button.disabled=true;button.dataset.originalText=button.textContent;button.textContent='ОТПРАВЛЯЕМ…'}
- try{
-   const email=contact.includes('@')?contact:'';
-   const details=[
-     'Изделие: '+c.productLabel,
-     'Метод: '+c.methodLabel,
-     'Материал / основа: '+c.materialLabel,
-     'Размер: '+(c.dims||'не указан'),
-     'Заполнение: '+(c.fill?Math.round(Number(c.fill)*100)+'%':'—'),
-     'Постобработка: '+c.finish,
-     'Формат принта: '+(c.print||'—'),
-     'Количество: '+c.qty,
-     'Стоимость: '+c.price,
-     c.range
-   ].filter(Boolean).join('\n');
-   const message=[task||'Комментарий не указан','\nПараметры калькулятора:\n'+details].join('\n');
-   const api=await loadEmailJS();
-   await api.send(SERVICE_ID,TEMPLATE_ID,{
-     name,
-     email,
-     phone:contact,
-     material:c.materialLabel,
-     color:'—',
-     quantity:c.qty,
-     weight:'см. параметры калькулятора',
-     print_time:'не рассчитывается',
-     price:c.price,
-     message
-   });
-   if(button)button.textContent='ЗАЯВКА ОТПРАВЛЕНА ✓';
-   form.reset();
-   setTimeout(()=>{if(button){button.disabled=false;button.textContent=button.dataset.originalText||'ОТПРАВИТЬ ЗАЯВКУ →'}},3500);
-   alert('Заявка успешно отправлена. Спасибо! Мы свяжемся с вами для уточнения деталей.');
- }catch(err){
-   console.error('EmailJS error:',err);
-   if(button){button.disabled=false;button.textContent=button.dataset.originalText||'ОТПРАВИТЬ ЗАЯВКУ →'}
-   alert('Не удалось отправить заявку. Проверьте подключение к интернету и попробуйте ещё раз.');
- }
+
+  const button =
+    form.querySelector('button[type="submit"]');
+
+  const name =
+    value('orderName');
+
+  const contact =
+    value('orderContact');
+
+  const taskField =
+    document.getElementById('orderTask');
+
+  const calculatorTask =
+    buildCalculatorTask();
+
+  if(!name || !contact){
+
+    form.reportValidity();
+
+    return;
+  }
+
+  /*
+   * Всегда получаем свежие данные калькулятора.
+   */
+
+  let userTask = '';
+
+  if(taskField){
+
+    userTask = taskField.value.trim();
+
+    /*
+     * Если поле уже содержит автоматически созданную
+     * информацию — не дублируем её.
+     */
+
+    if(userTask.startsWith('Заявка на 3D-печать')){
+
+      const marker = '\n\nПожелания клиента:';
+
+      const markerPosition =
+        userTask.indexOf(marker);
+
+      if(markerPosition !== -1){
+
+        userTask =
+          userTask
+            .slice(markerPosition + marker.length)
+            .trim();
+
+      }else{
+
+        userTask = '';
+
+      }
+    }
+  }
+
+  const finalTask =
+    userTask
+      ? calculatorTask +
+        '\n\nПожелания клиента:\n' +
+        userTask
+      : calculatorTask;
+
+  /*
+   * Обновляем поле формы перед отправкой.
+   */
+
+  if(taskField){
+
+    taskField.value = finalTask;
+
+  }
+
+  if(button){
+
+    button.disabled = true;
+
+    button.dataset.originalText =
+      button.textContent;
+
+    button.textContent =
+      'ОТПРАВЛЯЕМ…';
+  }
+
+  try{
+
+    const c = getCalculatorData();
+
+    /*
+     * Если пользователь указал email,
+     * используем его как Reply-To.
+     */
+
+    const email =
+      contact.includes('@')
+        ? contact
+        : '';
+
+    const templateParams = {
+
+      name: name,
+
+      email: email,
+
+      phone: contact,
+
+      /*
+       * Основная задача.
+       */
+      message: finalTask,
+
+      /*
+       * Отдельные параметры тоже передаём,
+       * чтобы их можно было использовать
+       * непосредственно в EmailJS шаблоне.
+       */
+
+      product: c.productLabel,
+
+      method: c.methodLabel,
+
+      material: c.materialLabel,
+
+      dimensions: c.dims,
+
+      fill: c.fillLabel,
+
+      finish: c.finish,
+
+      print: c.printLabel,
+
+      quantity: c.qty,
+
+      price: c.price,
+
+      price_range: c.range
+
+    };
+
+    console.log(
+      'EmailJS template params:',
+      templateParams
+    );
+
+    const api =
+      await loadEmailJS();
+
+    const response =
+      await api.send(
+        SERVICE_ID,
+        TEMPLATE_ID,
+        templateParams
+      );
+
+    console.log(
+      'EmailJS success:',
+      response
+    );
+
+    if(button){
+
+      button.textContent =
+        'ЗАЯВКА ОТПРАВЛЕНА ✓';
+    }
+
+    alert(
+      'Заявка успешно отправлена. Спасибо! Мы свяжемся с вами для уточнения деталей.'
+    );
+
+    /*
+     * Очищаем форму только после успешной отправки.
+     */
+
+    form.reset();
+
+    if(taskField){
+
+      taskField.dataset.userEdited =
+        'false';
+
+      taskField.value = '';
+
+    }
+
+    setTimeout(()=>{
+
+      if(button){
+
+        button.disabled = false;
+
+        button.textContent =
+          button.dataset.originalText
+          || 'ОТПРАВИТЬ ЗАЯВКУ →';
+
+      }
+
+    },3500);
+
+  }catch(error){
+
+    console.error(
+      'EmailJS error:',
+      error
+    );
+
+    /*
+     * Показываем настоящую ошибку в консоли,
+     * чтобы можно было точно определить проблему.
+     */
+
+    const errorText =
+      error?.text
+      || error?.message
+      || 'Неизвестная ошибка';
+
+    console.error(
+      'EmailJS error details:',
+      errorText
+    );
+
+    if(button){
+
+      button.disabled = false;
+
+      button.textContent =
+        button.dataset.originalText
+        || 'ОТПРАВИТЬ ЗАЯВКУ →';
+    }
+
+    alert(
+      'Не удалось отправить заявку.\n\n' +
+      'Ошибка EmailJS: ' +
+      errorText
+    );
+
+  }
+
 }
+
+/* ---------- Bind form ---------- */
+
 function bind(){
- const form=document.getElementById('orderForm');
- if(!form){setTimeout(bind,500);return}
- if(form.dataset.emailjsBound==='1')return;
- form.dataset.emailjsBound='1';
- /* Capture phase runs before the old inline submit handler in index.html. */
- document.addEventListener('submit',e=>{
-   if(e.target!==form)return;
-   e.preventDefault();
-   e.stopImmediatePropagation();
-   sendOrder(form);
- },true);
+
+  const form =
+    document.getElementById('orderForm');
+
+  if(!form){
+
+    setTimeout(bind,500);
+
+    return;
+  }
+
+  if(form.dataset.emailjsBound === '1'){
+
+    return;
+  }
+
+  form.dataset.emailjsBound = '1';
+
+  bindTaskEditing();
+
+  /*
+   * Первоначально заполняем "Задачу"
+   * данными калькулятора.
+   */
+
+  updateOrderTask();
+
+  /*
+   * Следим за изменениями калькулятора.
+   *
+   * calculator-pro.js пересчитывает значения
+   * при изменении параметров.
+   *
+   * Здесь периодически синхронизируем
+   * поле "Задача".
+   */
+
+  let lastCalculatorState = '';
+
+  setInterval(()=>{
+
+    const currentState =
+      buildCalculatorTask();
+
+    if(currentState === lastCalculatorState){
+
+      return;
+    }
+
+    lastCalculatorState =
+      currentState;
+
+    const taskField =
+      document.getElementById('orderTask');
+
+    if(!taskField) return;
+
+    /*
+     * Если пользователь ещё не начал
+     * редактировать поле — обновляем его.
+     */
+
+    if(taskField.dataset.userEdited !== 'true'){
+
+      taskField.value =
+        currentState;
+
+    }
+
+  },500);
+
+  /*
+   * Перехватываем отправку формы
+   * до старого обработчика index.html.
+   */
+
+  document.addEventListener(
+    'submit',
+    event=>{
+
+      if(event.target !== form){
+
+        return;
+      }
+
+      event.preventDefault();
+
+      event.stopImmediatePropagation();
+
+      sendOrder(form);
+
+    },
+    true
+  );
+
 }
+
 bind();
+
 })();
