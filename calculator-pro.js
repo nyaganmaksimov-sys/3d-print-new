@@ -60,3 +60,102 @@ function calc(){const product=products[$('cp-product').value],method=$('cp-metho
  @media(max-width:480px){.cp-choices,.cp-methods,.cp-materials{grid-template-columns:1fr 1fr}.cp-choice{min-height:54px;font-size:9px}.cp-choice-icon{font-size:18px}.cp-dims{grid-template-columns:1fr}.cp-breakdown div{font-size:9px}}
  `;document.head.appendChild(css);
 })();
+
+/* EmailJS integration for the order form. */
+(()=>{
+'use strict';
+const SERVICE_ID='service_6xfl2a';
+const TEMPLATE_ID='template_yju0736';
+const PUBLIC_KEY='n8hebGkPhnnvLzaWu';
+let emailReady=null;
+function loadEmailJS(){
+ if(window.emailjs)return Promise.resolve(window.emailjs);
+ if(emailReady)return emailReady;
+ emailReady=new Promise((resolve,reject)=>{
+   const script=document.createElement('script');
+   script.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+   script.onload=()=>{try{window.emailjs.init({publicKey:PUBLIC_KEY});resolve(window.emailjs)}catch(err){reject(err)}};
+   script.onerror=()=>reject(new Error('Не удалось загрузить EmailJS'));
+   document.head.appendChild(script);
+ });
+ return emailReady;
+}
+function value(id){return document.getElementById(id)?.value?.trim()||''}
+function text(id){return document.getElementById(id)?.innerText?.trim()||''}
+function getCalculatorData(){
+ const product=value('cp-product');
+ const method=value('cp-method');
+ const material=value('cp-material');
+ const qty=value('cp-qty')||'1';
+ const price=text('cp-price')||'не рассчитана';
+ const range=text('cp-range');
+ const dims=[value('cp-l'),value('cp-w'),value('cp-h')].filter(Boolean).join(' × ');
+ const fill=value('cp-fill');
+ const finish=document.getElementById('cp-finish');
+ const print=value('cp-print');
+ const materialLabel=document.querySelector('[data-material="'+material+'"] span:last-child')?.innerText||material||'не указан';
+ const methodLabel=document.querySelector('[data-method="'+method+'"] span:last-child')?.innerText||method||'не указан';
+ const productLabel=document.querySelector('[data-product="'+product+'"] span:last-child')?.innerText||product||'не указан';
+ return {productLabel,methodLabel,materialLabel,qty,price,range,dims,fill,finish:finish?.selectedOptions?.[0]?.textContent||'Без обработки',print};
+}
+async function sendOrder(form){
+ const button=form.querySelector('button[type="submit"]');
+ const name=value('orderName');
+ const contact=value('orderContact');
+ const task=value('orderTask');
+ const c=getCalculatorData();
+ if(!name||!contact){form.reportValidity();return}
+ if(button){button.disabled=true;button.dataset.originalText=button.textContent;button.textContent='ОТПРАВЛЯЕМ…'}
+ try{
+   const email=contact.includes('@')?contact:'';
+   const details=[
+     'Изделие: '+c.productLabel,
+     'Метод: '+c.methodLabel,
+     'Материал / основа: '+c.materialLabel,
+     'Размер: '+(c.dims||'не указан'),
+     'Заполнение: '+(c.fill?Math.round(Number(c.fill)*100)+'%':'—'),
+     'Постобработка: '+c.finish,
+     'Формат принта: '+(c.print||'—'),
+     'Количество: '+c.qty,
+     'Стоимость: '+c.price,
+     c.range
+   ].filter(Boolean).join('\n');
+   const message=[task||'Комментарий не указан','\nПараметры калькулятора:\n'+details].join('\n');
+   const api=await loadEmailJS();
+   await api.send(SERVICE_ID,TEMPLATE_ID,{
+     name,
+     email,
+     phone:contact,
+     material:c.materialLabel,
+     color:'—',
+     quantity:c.qty,
+     weight:'см. параметры калькулятора',
+     print_time:'не рассчитывается',
+     price:c.price,
+     message
+   });
+   if(button)button.textContent='ЗАЯВКА ОТПРАВЛЕНА ✓';
+   form.reset();
+   setTimeout(()=>{if(button){button.disabled=false;button.textContent=button.dataset.originalText||'ОТПРАВИТЬ ЗАЯВКУ →'}},3500);
+   alert('Заявка успешно отправлена. Спасибо! Мы свяжемся с вами для уточнения деталей.');
+ }catch(err){
+   console.error('EmailJS error:',err);
+   if(button){button.disabled=false;button.textContent=button.dataset.originalText||'ОТПРАВИТЬ ЗАЯВКУ →'}
+   alert('Не удалось отправить заявку. Проверьте подключение к интернету и попробуйте ещё раз.');
+ }
+}
+function bind(){
+ const form=document.getElementById('orderForm');
+ if(!form){setTimeout(bind,500);return}
+ if(form.dataset.emailjsBound==='1')return;
+ form.dataset.emailjsBound='1';
+ /* Capture phase runs before the old inline submit handler in index.html. */
+ document.addEventListener('submit',e=>{
+   if(e.target!==form)return;
+   e.preventDefault();
+   e.stopImmediatePropagation();
+   sendOrder(form);
+ },true);
+}
+bind();
+})();
