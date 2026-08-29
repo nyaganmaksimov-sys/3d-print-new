@@ -394,7 +394,8 @@ async function sendOrder(form){
       email: email,
 
       phone: contact,
-
+model: window.__catalogModel || '',
+model_url: window.__catalogModelUrl || '',
       /*
        * Основная задача.
        */
