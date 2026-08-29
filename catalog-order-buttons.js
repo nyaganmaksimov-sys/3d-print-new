@@ -1,599 +1,171 @@
 (() => {
   'use strict';
 
+  const STORAGE_KEY = '3dprint_catalog_order';
   const BUTTON_CLASS = 'catalog-order-buttons';
 
-  function normalize(text) {
-    return String(text || '')
-      .replace(/\s+/g, ' ')
-      .trim();
+  const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
+
+  function getTitle(card) {
+    const el = card.querySelector('.model-info h3, .product-info h3, h3, .product-title, [data-model-title]');
+    return normalize(el?.textContent);
   }
 
-  function getModelTitle(card) {
-    const title =
-      card.querySelector('.model-info h3') ||
-      card.querySelector('h3') ||
-      card.querySelector('.product-title') ||
-      card.querySelector('[data-model-title]');
-
-    return normalize(title?.textContent);
-  }
-
-  function getModelUrl(card) {
-    /*
-     * В первую очередь ищем ссылку непосредственно
-     * внутри карточки.
-     */
+  function getUrl(card) {
     const links = [...card.querySelectorAll('a[href]')];
-
-    /*
-     * Отбрасываем внутренние ссылки сайта.
-     * Нас интересует оригинальная страница модели.
-     */
-    const external = links.find(link => {
-      const href = link.getAttribute('href') || '';
-
-      return (
-        /^https?:\/\//i.test(href) &&
-        !href.includes('3d-artprint.ru')
-      );
+    const link = links.find(a => {
+      const href = a.getAttribute('href') || '';
+      return /^https?:\/\//i.test(href) && !href.includes('3d-artprint.ru');
+    }) || links.find(a => {
+      const href = a.getAttribute('href') || '';
+      return href && !href.startsWith('#') && !href.startsWith('javascript:');
     });
-
-    if (external) {
-      return external.href;
-    }
-
-    /*
-     * Если ссылка относительная,
-     * используем её как страницу модели.
-     */
-    const relative = links.find(link => {
-      const href = link.getAttribute('href') || '';
-
-      return (
-        href &&
-        !href.startsWith('#') &&
-        !href.startsWith('javascript:')
-      );
-    });
-
-    if (relative) {
-      return new URL(
-        relative.getAttribute('href'),
-        location.href
-      ).href;
-    }
-
-    /*
-     * Иногда ссылка может быть записана
-     * непосредственно в data-атрибуте.
-     */
-    const dataUrl =
-      card.dataset.modelUrl ||
-      card.dataset.url ||
-      card.getAttribute('data-model-url');
-
-    return dataUrl
-      ? new URL(dataUrl, location.href).href
-      : '';
+    return link ? new URL(link.getAttribute('href'), location.href).href : '';
   }
 
-  function playSound(type) {
-    if (
-      window.SoundFX &&
-      typeof window.SoundFX[type] === 'function'
-    ) {
-      window.SoundFX[type]();
-    }
+  function saveOrder(title, url) {
+    const data = {
+      title: title || '',
+      url: url || '',
+      time: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    window.__catalogModel = data.title;
+    window.__catalogModelUrl = data.url;
+    return data;
   }
 
-  function selectCalculatorModel(title) {
-    /*
-     * Если калькулятор находится на этой же странице.
-     */
-    const select =
-      document.getElementById('cp-product');
+  function putIntoTask(data) {
+    const task = document.getElementById('orderTask');
+    if (!task || !data?.title) return;
 
-    if (!select) {
-      return;
-    }
+    const lines = [`Модель из каталога: ${data.title}`];
+    if (data.url) lines.push(`Ссылка на модель: ${data.url}`);
 
-    const cleanTitle =
-      title.toLowerCase();
+    let current = task.value.trim();
+    current = current
+      .replace(/^Модель из каталога:.*$/gim, '')
+      .replace(/^Ссылка на модель:.*$/gim, '')
+      .replace(/^\s*\n/gm, '')
+      .trim();
 
-    const options =
-      [...select.options];
+    task.value = current ? `${lines.join('\n')}\n\n${current}` : lines.join('\n');
+    task.dataset.catalogModel = data.title;
+    task.dataset.catalogModelUrl = data.url || '';
+    task.dataset.userEdited = 'true';
+    task.dispatchEvent(new Event('input', { bubbles: true }));
+  }
 
-    const match =
-      options.find(option => {
+  function restoreOnOrderPage() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
 
-        const optionText =
-          normalize(option.textContent)
-            .toLowerCase();
+    let data;
+    try { data = JSON.parse(raw); } catch { return; }
+    if (!data?.title) return;
 
-        const optionValue =
-          normalize(option.value)
-            .toLowerCase();
+    window.__catalogModel = data.title;
+    window.__catalogModelUrl = data.url || '';
 
-        return (
-          optionText === cleanTitle ||
-          optionValue === cleanTitle ||
-          optionText.includes(cleanTitle) ||
-          cleanTitle.includes(optionText)
-        );
-      });
+    const apply = () => putIntoTask(data);
+    if (document.getElementById('orderTask')) apply();
+    else setTimeout(apply, 300);
+  }
+
+  function selectCalculatorProduct(title) {
+    const select = document.getElementById('cp-product');
+    if (!select) return;
+
+    const wanted = title.toLowerCase();
+    const match = [...select.options].find(option => {
+      const text = normalize(option.textContent).toLowerCase();
+      const value = normalize(option.value).toLowerCase();
+      return text === wanted || value === wanted || text.includes(wanted) || wanted.includes(text);
+    });
 
     if (match) {
-
-      select.value =
-        match.value;
-
-      select.dispatchEvent(
-        new Event('input', {
-          bubbles: true
-        })
-      );
-
-      select.dispatchEvent(
-        new Event('change', {
-          bubbles: true
-        })
-      );
-    }
-
-    /*
-     * Сохраняем выбранную модель,
-     * даже если её пока нет в списке калькулятора.
-     */
-    window.__catalogModel = title;
-  }
-
-  function addModelToOrder(title, url) {
-
-    /*
-     * Сохраняем модель глобально.
-     */
-    window.__catalogModel = title;
-    window.__catalogModelUrl = url;
-
-    /*
-     * Если есть калькулятор на этой странице —
-     * выбираем модель.
-     */
-    selectCalculatorModel(title);
-
-    /*
-     * Если есть форма заявки —
-     * добавляем информацию о модели.
-     */
-    const task =
-      document.getElementById('orderTask');
-
-    if (task) {
-
-      const modelLine =
-        `Модель из каталога: ${title}`;
-
-      const linkLine =
-        url
-          ? `Страница модели: ${url}`
-          : '';
-
-      const current =
-        task.value.trim();
-
-      /*
-       * Удаляем старую информацию
-       * об этой модели.
-       */
-      const cleaned =
-        current
-          .replace(
-            /^Модель из каталога:.*$/gim,
-            ''
-          )
-          .replace(
-            /^Страница модели:.*$/gim,
-            ''
-          )
-          .replace(
-            /^\s*\n\s*\n/gm,
-            '\n'
-          )
-          .trim();
-
-      const prefix =
-        [
-          modelLine,
-          linkLine
-        ]
-        .filter(Boolean)
-        .join('\n');
-
-      task.value =
-        cleaned
-          ? `${prefix}\n\n${cleaned}`
-          : prefix;
-
-      task.dataset.userEdited =
-        'true';
-
-      task.dispatchEvent(
-        new Event('input', {
-          bubbles: true
-        })
-      );
-    }
-
-    /*
-     * Если калькулятор находится на index.html,
-     * переходим туда.
-     */
-    if (
-      location.pathname.endsWith(
-        '/catalog.html'
-      )
-    ) {
-
-      const target =
-        `index.html#calculator`;
-
-      window.location.href =
-        target;
+      select.value = match.value;
+      select.dispatchEvent(new Event('input', { bubbles: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true }));
     }
   }
 
-  function createButtons(card) {
+  function goToCalculator() {
+    window.location.href = 'index.html#order';
+  }
 
-    if (
-      card.querySelector(
-        `.${BUTTON_CLASS}`
-      )
-    ) {
-      return;
-    }
+  function addButtons(card) {
+    if (card.querySelector(`.${BUTTON_CLASS}`)) return;
 
-    const title =
-      getModelTitle(card);
+    const title = getTitle(card);
+    if (!title) return;
 
-    if (!title) {
-      return;
-    }
+    const url = getUrl(card);
+    const wrap = document.createElement('div');
+    wrap.className = BUTTON_CLASS;
 
-    const modelUrl =
-      getModelUrl(card);
+    const order = document.createElement('button');
+    order.type = 'button';
+    order.className = 'catalog-order-main';
+    order.innerHTML = 'ЗАКАЗАТЬ ЭТУ МОДЕЛЬ <span>→</span>';
 
-    const wrapper =
-      document.createElement('div');
+    order.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
 
-    wrapper.className =
-      BUTTON_CLASS;
+      const data = saveOrder(title, url);
+      selectCalculatorProduct(title);
+      putIntoTask(data);
 
-    /*
-     * Кнопка заказа.
-     */
-    const orderButton =
-      document.createElement('button');
+      try {
+        if (window.SoundFX?.click) window.SoundFX.click();
+      } catch {}
 
-    orderButton.type =
-      'button';
+      goToCalculator();
+    });
 
-    orderButton.className =
-      'catalog-order-main';
+    const link = document.createElement('a');
+    link.className = 'catalog-model-link';
+    link.textContent = '↗ СТРАНИЦА МОДЕЛИ';
+    link.href = url || '#';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    if (!url) link.addEventListener('click', e => e.preventDefault());
 
-    orderButton.innerHTML =
-      'ЗАКАЗАТЬ ЭТУ МОДЕЛЬ <span>→</span>';
-
-    orderButton.title =
-      `Заказать модель: ${title}`;
-
-    orderButton.addEventListener(
-      'click',
-      event => {
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        playSound('click');
-
-        addModelToOrder(
-          title,
-          modelUrl
-        );
-      }
-    );
-
-    /*
-     * Ссылка на страницу модели.
-     */
-    const modelLink =
-      document.createElement('a');
-
-    modelLink.className =
-      'catalog-model-link';
-
-    modelLink.innerHTML =
-      '↗ СТРАНИЦА МОДЕЛИ';
-
-    modelLink.title =
-      `Открыть страницу модели: ${title}`;
-
-    if (modelUrl) {
-
-      modelLink.href =
-        modelUrl;
-
-      modelLink.target =
-        '_blank';
-
-      modelLink.rel =
-        'noopener noreferrer';
-
-    } else {
-
-      modelLink.href =
-        '#';
-
-      modelLink.addEventListener(
-        'click',
-        event => {
-          event.preventDefault();
-        }
-      );
-    }
-
-    wrapper.appendChild(
-      orderButton
-    );
-
-    wrapper.appendChild(
-      modelLink
-    );
-
-    /*
-     * Ставим кнопки в конец блока
-     * с информацией о модели.
-     */
-    const info =
-      card.querySelector(
-        '.model-info'
-      );
-
-    if (info) {
-
-      info.appendChild(
-        wrapper
-      );
-
-    } else {
-
-      card.appendChild(
-        wrapper
-      );
-    }
+    wrap.append(order, link);
+    (card.querySelector('.model-info, .product-info') || card).appendChild(wrap);
   }
 
   function addStyles() {
-
-    if (
-      document.getElementById(
-        'catalog-order-buttons-style'
-      )
-    ) {
-      return;
-    }
-
-    const style =
-      document.createElement('style');
-
-    style.id =
-      'catalog-order-buttons-style';
-
+    if (document.getElementById('catalog-order-buttons-style')) return;
+    const style = document.createElement('style');
+    style.id = 'catalog-order-buttons-style';
     style.textContent = `
-      .catalog-order-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 7px;
-        width: 100%;
-        margin-top: 14px;
-      }
-
-      .catalog-order-main {
-        width: 100%;
-        min-height: 42px;
-        padding: 0 14px;
-
-        border: 1px solid rgba(0,191,255,.48);
-        border-radius: 7px;
-
-        background:
-          linear-gradient(
-            100deg,
-            rgba(0,191,255,.15),
-            rgba(23,108,255,.12)
-          );
-
-        color: #fff;
-
-        font-family: inherit;
-        font-size: 10px;
-        font-weight: 900;
-        letter-spacing: .45px;
-
-        cursor: pointer;
-
-        transition:
-          transform .2s ease,
-          border-color .2s ease,
-          background .2s ease,
-          box-shadow .2s ease;
-      }
-
-      .catalog-order-main span {
-        color: #00bfff;
-        margin-left: 5px;
-      }
-
-      .catalog-order-main:hover {
-        transform: translateY(-2px);
-
-        border-color:
-          rgba(0,191,255,.95);
-
-        background:
-          linear-gradient(
-            100deg,
-            rgba(0,191,255,.25),
-            rgba(23,108,255,.20)
-          );
-
-        box-shadow:
-          0 10px 30px
-          rgba(0,191,255,.13);
-      }
-
-      .catalog-order-main:active {
-        transform: translateY(0);
-      }
-
-      .catalog-model-link {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        width: 100%;
-        min-height: 34px;
-
-        box-sizing: border-box;
-
-        border: 1px solid
-          rgba(255,255,255,.13);
-
-        border-radius: 6px;
-
-        background:
-          rgba(255,255,255,.025);
-
-        color: #8995a3;
-
-        text-decoration: none;
-
-        font-family: inherit;
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: .35px;
-
-        transition:
-          color .2s ease,
-          border-color .2s ease,
-          background .2s ease;
-      }
-
-      .catalog-model-link:hover {
-        color: #fff;
-
-        border-color:
-          rgba(0,191,255,.45);
-
-        background:
-          rgba(0,191,255,.06);
-      }
-
-      @media (max-width: 600px) {
-
-        .catalog-order-main {
-          min-height: 44px;
-          font-size: 9px;
-        }
-
-        .catalog-model-link {
-          min-height: 36px;
-          font-size: 8px;
-        }
-      }
+      .catalog-order-buttons{display:flex;flex-direction:column;gap:7px;width:100%;margin-top:14px}
+      .catalog-order-main{width:100%;min-height:42px;padding:0 14px;border:1px solid rgba(0,191,255,.48);border-radius:7px;background:linear-gradient(100deg,rgba(0,191,255,.15),rgba(23,108,255,.12));color:#fff;font:900 10px inherit;letter-spacing:.45px;cursor:pointer;transition:.2s}
+      .catalog-order-main span{color:#00bfff;margin-left:5px}
+      .catalog-order-main:hover{transform:translateY(-2px);border-color:rgba(0,191,255,.95);background:linear-gradient(100deg,rgba(0,191,255,.25),rgba(23,108,255,.2));box-shadow:0 10px 30px rgba(0,191,255,.13)}
+      .catalog-model-link{display:flex;align-items:center;justify-content:center;width:100%;min-height:34px;box-sizing:border-box;border:1px solid rgba(255,255,255,.13);border-radius:6px;background:rgba(255,255,255,.025);color:#8995a3;text-decoration:none;font:800 9px inherit;letter-spacing:.35px;transition:.2s}
+      .catalog-model-link:hover{color:#fff;border-color:rgba(0,191,255,.45);background:rgba(0,191,255,.06)}
     `;
+    document.head.appendChild(style);
+  }
 
-    document.head.appendChild(
-      style
-    );
+  function initCatalog() {
+    addStyles();
+    document.querySelectorAll('.model-card, .product').forEach(addButtons);
+    new MutationObserver(mutations => {
+      if (mutations.some(m => m.addedNodes?.length)) {
+        document.querySelectorAll('.model-card, .product').forEach(addButtons);
+      }
+    }).observe(document.body, { childList: true, subtree: true });
   }
 
   function init() {
-
-    addStyles();
-
-    const cards =
-      document.querySelectorAll(
-        '.model-card, .product'
-      );
-
-    cards.forEach(
-      createButtons
-    );
-
-    /*
-     * Следим за каталогом,
-     * потому что часть карточек может
-     * добавляться JavaScript-ом.
-     */
-    const observer =
-      new MutationObserver(
-        mutations => {
-
-          let changed = false;
-
-          mutations.forEach(
-            mutation => {
-
-              if (
-                mutation.addedNodes &&
-                mutation.addedNodes.length
-              ) {
-                changed = true;
-              }
-            }
-          );
-
-          if (changed) {
-
-            document
-              .querySelectorAll(
-                '.model-card, .product'
-              )
-              .forEach(
-                createButtons
-              );
-          }
-        }
-      );
-
-    observer.observe(
-      document.body,
-      {
-        childList: true,
-        subtree: true
-      }
-    );
-
-    console.log(
-      '3D-ARTPRINT catalog buttons initialized'
-    );
+    if (document.getElementById('orderTask')) restoreOnOrderPage();
+    if (document.querySelector('.catalog-grid')) initCatalog();
   }
 
-  if (
-    document.readyState ===
-    'loading'
-  ) {
-
-    document.addEventListener(
-      'DOMContentLoaded',
-      init,
-      { once: true }
-    );
-
-  } else {
-
-    init();
-  }
-
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
+  else init();
 })();
