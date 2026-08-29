@@ -40,25 +40,70 @@
     return false;
   }
 
-  function putModelIntoTask(title){
-    const task = document.getElementById('orderTask');
-    if(!task) return;
+ function putModelIntoTask(title, url){
+  const task = document.getElementById('orderTask');
 
-    const current = task.value.trim();
-    const marker = 'Модель из каталога:';
-    const line = `${marker} ${title}`;
+  if(!task) return;
 
-    if(current.includes(marker)){
-      task.value = current.replace(/^Модель из каталога:.*$/m, line);
-    }else if(current){
-      task.value = `${line}\n\n${current}`;
-    }else{
-      task.value = line;
+  const markerModel = 'Модель из каталога:';
+  const markerUrl = 'Ссылка на модель:';
+
+  const modelLine =
+    `${markerModel} ${title}`;
+
+  const urlLine =
+    url
+      ? `${markerUrl} ${url}`
+      : '';
+
+  let current =
+    task.value.trim();
+
+  /*
+   * Удаляем старую модель и старую ссылку,
+   * если они уже были добавлены.
+   */
+  current = current
+    .replace(/^Модель из каталога:.*$/gim, '')
+    .replace(/^Ссылка на модель:.*$/gim, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  /*
+   * Формируем новый блок.
+   */
+  const modelBlock = [
+    modelLine,
+    urlLine
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  task.value =
+    current
+      ? `${modelBlock}\n\n${current}`
+      : modelBlock;
+
+  /*
+   * Сообщаем остальному коду сайта,
+   * что поле изменилось.
+   */
+  task.dataset.userEdited = 'true';
+
+  task.dispatchEvent(
+    new Event('input', {
+      bubbles: true
+    })
+  );
+
+  console.log(
+    'Каталог → Задача:',
+    {
+      model: title,
+      url: url
     }
-
-    task.dataset.userEdited = 'true';
-    task.dispatchEvent(new Event('input',{bubbles:true}));
-  }
+  );
+}
 
   function goToCalculator(){
     const calc = document.getElementById('calculator')
