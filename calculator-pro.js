@@ -65,7 +65,7 @@ function calc(){const product=products[$('cp-product').value],method=$('cp-metho
 (()=>{
 'use strict';
 
-const SERVICE_ID = 'service_6xfl2a';
+const SERVICE_ID = 'service_6xflt2a';
 const TEMPLATE_ID = 'template_yju0736';
 const PUBLIC_KEY = 'n8hebGkPhnnvLzaWu';
 
