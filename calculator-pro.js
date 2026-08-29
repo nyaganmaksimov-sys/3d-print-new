@@ -4,47 +4,59 @@ const root=document.querySelector('.calc-box');
 if(!root)return;
 const money=n=>new Intl.NumberFormat('ru-RU').format(Math.round(n))+' ₽';
 const data={
- fdm:{name:'FDM / FFF',materials:{pla:['PLA',10,1.24],petg:['PETG',11,1.27],abs:['ABS',15,1.04],asa:['ASA',15,1.07],tpu:['TPU',18,1.20],pa:['Нейлон PA',35,1.14],cf:['Композит CF/GF',35,1.20]},machine:260,setup:180},
- sla:{name:'SLA / фотополимер',materials:{standard:['Standard Resin',50,1.10],abs:['ABS-like Resin',60,1.10],tough:['Tough / Engineering Resin',85,1.12],clear:['Clear Resin',75,1.10]},machine:420,setup:300},
- sls:{name:'SLS',materials:{pa12:['PA12 Nylon',100,1.01],pa11:['PA11 Nylon',120,1.03]},machine:850,setup:650},
- mjf:{name:'MJF',materials:{pa12:['PA12',90,1.01],pa11:['PA11',110,1.03]},machine:780,setup:600},
- sublimation:{name:'Сублимация',materials:{mug:['Кружка 330 мл',390,0],tshirt:['Футболка белая',900,0],oversize:['Футболка oversize',1300,0],puzzle:['Пазл / сувенир',450,0]},machine:0,setup:150}
+ fdm:{name:'FDM / FFF',icon:'🖨️',materials:{pla:['PLA',10,1.24],petg:['PETG',11,1.27],abs:['ABS',14,1.04],asa:['ASA',15,1.07],tpu:['TPU',18,1.20],pa:['Нейлон PA',35,1.14],cf:['Композит CF/GF',40,1.20]},machine:260,setup:180},
+ sla:{name:'SLA / фотополимер',icon:'💎',materials:{standard:['Standard Resin',50,1.10],abs:['ABS-like Resin',60,1.10],tough:['Tough / Engineering Resin',85,1.12],clear:['Clear Resin',75,1.10]},machine:420,setup:300},
+ sls:{name:'SLS',icon:'⚙️',materials:{pa12:['PA12 Nylon',100,1.01],pa11:['PA11 Nylon',120,1.03]},machine:850,setup:650},
+ mjf:{name:'MJF',icon:'🏭',materials:{pa12:['PA12',90,1.01],pa11:['PA11',110,1.03]},machine:780,setup:600},
+ sublimation:{name:'Сублимационная печать',icon:'🎨',materials:{mug:['Кружка 330 мл',390,0],tshirt:['Футболка белая',750,0],oversize:['Футболка oversize',1100,0],puzzle:['Пазл сувенирный',450,0]},machine:0,setup:150}
 };
 const products={
- detail:{name:'Техническая деталь',methods:['fdm','sla','sls','mjf'],shape:.32},
- housing:{name:'Корпус / кожух',methods:['fdm','sla','sls','mjf'],shape:.24},
- prototype:{name:'Прототип',methods:['fdm','sla','sls','mjf'],shape:.28},
- figure:{name:'Фигурка / модель',methods:['fdm','sla','sls','mjf'],shape:.18},
- decor:{name:'Декор / интерьер',methods:['fdm','sla','sls','mjf'],shape:.22},
- spare:{name:'Запчасть',methods:['fdm','sla','sls','mjf'],shape:.30},
- souvenir:{name:'Сувенирная продукция',methods:['fdm','sublimation'],shape:.20}
+ detail:{name:'Техническая деталь',icon:'⚙️',methods:['fdm','sla','sls','mjf'],shape:.32},
+ housing:{name:'Корпус / кожух',icon:'📦',methods:['fdm','sla','sls','mjf'],shape:.24},
+ prototype:{name:'Прототип',icon:'🧪',methods:['fdm','sla','sls','mjf'],shape:.28},
+ figure:{name:'Фигурка / модель',icon:'🗿',methods:['fdm','sla','sls','mjf'],shape:.18},
+ decor:{name:'Декор / интерьер',icon:'🏠',methods:['fdm','sla','sls','mjf'],shape:.22},
+ spare:{name:'Запчасть',icon:'🔧',methods:['fdm','sla','sls','mjf'],shape:.30},
+ souvenir:{name:'Сувенирная продукция',icon:'🎁',methods:['fdm','sublimation'],shape:.20}
 };
+const productOptions=Object.entries(products).map(([v,p])=>`<button type="button" class="cp-choice" data-product="${v}"><span class="cp-choice-icon">${p.icon}</span><span>${p.name}</span></button>`).join('');
 root.innerHTML=`
 <div class="calc-form">
- <div class="field full"><label>Что изготовить</label><select id="cp-product"><option value="detail">Техническая деталь</option><option value="housing">Корпус / кожух</option><option value="prototype">Прототип</option><option value="figure">Фигурка / модель</option><option value="decor">Декор / интерьер</option><option value="spare">Запчасть</option><option value="souvenir">Сувенирная продукция</option></select></div>
- <div class="field"><label>Метод изготовления</label><select id="cp-method"></select></div>
- <div class="field"><label>Материал / изделие</label><select id="cp-material"></select></div>
- <div id="cp-dimensions" class="field full"><label>Размер изделия, мм</label><div class="cp-dims"><input id="cp-l" type="number" min="10" value="100" placeholder="Длина"><input id="cp-w" type="number" min="10" value="80" placeholder="Ширина"><input id="cp-h" type="number" min="1" value="40" placeholder="Высота"></div></div>
- <div id="cp-fill-wrap" class="field"><label>Заполнение</label><select id="cp-fill"><option value="0.12">12%</option><option value="0.20" selected>20%</option><option value="0.35">35%</option><option value="0.50">50%</option><option value="0.70">70%</option><option value="1">100%</option></select></div>
- <div id="cp-finish-wrap" class="field"><label>Постобработка</label><select id="cp-finish"><option value="0">Без обработки</option><option value="0.12">Удаление поддержек / зачистка +12%</option><option value="0.25">Шлифовка +25%</option><option value="0.45">Грунтовка и покраска +45%</option></select></div>
- <div id="cp-print-wrap" class="field full"><label>Печать на сувенире</label><select id="cp-print"><option value="1">Одна сторона / стандартный формат</option><option value="1.25">Увеличенный принт</option><option value="1.55">Две стороны</option></select></div>
- <div class="field full"><label>Количество, шт.</label><input id="cp-qty" type="number" min="1" value="1"></div>
+ <div class="field full"><label>1. ЧТО ИЗГОТОВИТЬ</label><div class="cp-choices" id="cp-products">${productOptions}</div><input id="cp-product" type="hidden" value="detail"></div>
+ <div class="field full"><label>2. МЕТОД ИЗГОТОВЛЕНИЯ</label><div class="cp-choices cp-methods" id="cp-methods"></div><input id="cp-method" type="hidden" value="fdm"></div>
+ <div class="field full"><label>3. МАТЕРИАЛ / ОСНОВА</label><div class="cp-choices cp-materials" id="cp-materials"></div><input id="cp-material" type="hidden" value="pla"></div>
+ <div id="cp-dimensions" class="field full"><label>РАЗМЕР ИЗДЕЛИЯ, мм</label><div class="cp-dims"><input id="cp-l" type="number" min="10" value="100" placeholder="Длина"><input id="cp-w" type="number" min="10" value="80" placeholder="Ширина"><input id="cp-h" type="number" min="1" value="40" placeholder="Высота"></div></div>
+ <div id="cp-fill-wrap" class="field"><label>ЗАПОЛНЕНИЕ</label><select id="cp-fill"><option value="0.12">12%</option><option value="0.20" selected>20%</option><option value="0.35">35%</option><option value="0.50">50%</option><option value="0.70">70%</option><option value="1">100%</option></select></div>
+ <div id="cp-finish-wrap" class="field"><label>ПОСТОБРАБОТКА</label><select id="cp-finish"><option value="0">Без обработки</option><option value="0.12">Зачистка +12%</option><option value="0.25">Шлифовка +25%</option><option value="0.45">Грунтовка + покраска +45%</option></select></div>
+ <div id="cp-print-wrap" class="field full"><label>РАЗМЕР ПРИНТА</label><div class="cp-choices cp-print-choices" id="cp-print-choices"></div><input id="cp-print" type="hidden" value="standard"></div>
+ <div class="field full"><label>КОЛИЧЕСТВО, шт.</label><input id="cp-qty" type="number" min="1" value="1"></div>
 </div>
 <div class="calc-result">
  <div class="calc-label">ОРИЕНТИРОВОЧНАЯ СТОИМОСТЬ</div><div class="price" id="cp-price">— <span>₽</span></div>
  <div class="cp-range" id="cp-range"></div><div class="cp-breakdown" id="cp-breakdown"></div>
- <p class="calc-note">Цена предварительная. Для 3D-печати итог зависит от реального веса модели, поддержек и времени печати. Для сублимации — от основы, размера принта и тиража.</p>
+ <p class="calc-note">Расчёт предварительный. Точная цена 3D-печати зависит от веса модели, поддержек и времени печати. Для сублимации учитываются основа, формат изображения и тираж.</p>
  <button class="btn btn-primary calc-order" type="button" onclick="document.querySelector('#order')?.scrollIntoView({behavior:'smooth'})">Оформить заказ</button>
 </div>`;
 const $=id=>document.getElementById(id);
-function opts(select,items){select.innerHTML=items.map(([v,n])=>`<option value="${v}">${n}</option>`).join('');}
-function updateMethods(){const p=products[$('cp-product').value];opts($('cp-method'),p.methods.map(k=>[k,data[k].name]));updateMaterials();}
-function updateMaterials(){const m=$('cp-method').value;opts($('cp-material'),Object.entries(data[m].materials).map(([k,v])=>[k,v[0]]));const sub=m==='sublimation';$('cp-dimensions').style.display=sub?'none':'';$('cp-fill-wrap').style.display=sub?'none':'';$('cp-finish-wrap').style.display=sub?'none':'';$('cp-print-wrap').style.display=sub?'':'none';if(sub){$('cp-print').innerHTML=Object.entries({mug:'Полная печать / стандарт',tshirt:'A4 — одна сторона',oversize:'A3 — одна сторона',puzzle:'Полная поверхность'}).map(([v,n])=>`<option value="${v}">${n}</option>`).join('');}}
-function calc(){const product=products[$('cp-product').value],method=$('cp-method').value,mat=$('cp-material').value,qty=Math.max(1,+$('cp-qty').value||1);let unit=0,materialCost=0,work=0,setup=data[method].setup;
- if(method==='sublimation'){const base=data[method].materials[mat][1];const print=$('cp-print').value;let mult=print==='mug'?1:print==='tshirt'?1:print==='oversize'?1.18:1;unit=base*mult;const discount=qty>=50?.78:qty>=20?.84:qty>=10?.9:qty>=5?.95:1;unit*=discount;setup=qty>1?120:150;materialCost=unit*.78;work=unit*.22;}
- else {const l=Math.max(10,+$('cp-l').value||100),w=Math.max(10,+$('cp-w').value||80),h=Math.max(1,+$('cp-h').value||40),fill=+$('cp-fill').value;const volume=l*w*h*product.shape;const effectiveVolume=volume*(.35+fill*.65);const density=data[method].materials[mat][2];const grams=Math.max(8,effectiveVolume/1000*density);const rate=data[method].materials[mat][1];materialCost=grams*rate;const hours=Math.max(.35,grams/(method==='fdm'?28:method==='sla'?22:55));work=data[method].machine*hours;const finish=1+(+$('cp-finish').value||0);unit=(materialCost+work+setup)*finish; if(qty>=100)unit*=.62;else if(qty>=50)unit*=.70;else if(qty>=20)unit*=.78;else if(qty>=10)unit*=.86;else if(qty>=5)unit*=.92;setup=setup/Math.max(1,qty);}
- const min=method==='sublimation'?300:method==='fdm'?350:500;let total=Math.max(min,unit*qty+setup);const low=total*.88,high=total*1.15; $('cp-price').innerHTML=`${money(total).replace(' ₽','')} <span>₽</span>`;$('cp-range').textContent=`Ориентир: ${money(low)} — ${money(high)}`;$('cp-breakdown').innerHTML=`<div><span>Изделие</span><b>${product.name}</b></div><div><span>Метод</span><b>${data[method].name}</b></div><div><span>Тираж</span><b>${qty} шт.</b></div>`;}
-$('cp-product').addEventListener('change',()=>{updateMethods();calc()});$('cp-method').addEventListener('change',()=>{updateMaterials();calc()});['cp-material','cp-l','cp-w','cp-h','cp-fill','cp-finish','cp-print','cp-qty'].forEach(id=>$(id).addEventListener('input',calc));
-updateMethods();calc();
-const css=document.createElement('style');css.textContent=`.cp-dims{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cp-range{font-size:11px;color:#8fa1b2;margin:-2px 0 15px}.cp-breakdown{width:100%;display:grid;gap:6px;margin-bottom:18px}.cp-breakdown div{display:flex;justify-content:space-between;gap:15px;font-size:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}.cp-breakdown span{color:#84909c}.cp-breakdown b{color:#dce4ec;text-align:right}@media(max-width:760px){.cp-dims{grid-template-columns:1fr}.cp-breakdown div{font-size:9px}}`;document.head.appendChild(css);
+function choiceButtons(container,items,current,attr){container.innerHTML=items.map(([v,n,icon])=>`<button type="button" class="cp-choice ${v===current?'active':''}" data-${attr}="${v}">${icon?`<span class="cp-choice-icon">${icon}</span>`:''}<span>${n}</span></button>`).join('');}
+function updateProducts(){document.querySelectorAll('[data-product]').forEach(b=>b.classList.toggle('active',b.dataset.product===$('cp-product').value));updateMethods();}
+function updateMethods(){const p=products[$('cp-product').value];choiceButtons($('cp-methods'),p.methods.map(k=>[k,data[k].name,data[k].icon]),p.methods[0],'method');$('cp-method').value=p.methods[0];updateMaterials();}
+function updateMaterials(){const m=$('cp-method').value;const mats=Object.entries(data[m].materials);choiceButtons($('cp-materials'),mats.map(([k,v])=>[k,v[0],m==='sublimation'?(k==='mug'?'☕':k==='tshirt'||k==='oversize'?'👕':'🧩'):'🧱']),mats[0][0],'material');$('cp-material').value=mats[0][0];const sub=m==='sublimation';$('cp-dimensions').style.display=sub?'none':'';$('cp-fill-wrap').style.display=sub?'none':'';$('cp-finish-wrap').style.display=sub?'none':'';$('cp-print-wrap').style.display=sub?'':'none';if(sub){choiceButtons($('cp-print-choices'),[['standard','Стандартный принт','▧'],['large','Увеличенный A3','▦'],['double','Две стороны','▤']], 'standard','print');$('cp-print').value='standard';}}
+function setActive(selector,attr,value){document.querySelectorAll(selector).forEach(b=>b.classList.toggle('active',b.dataset[attr]===value));}
+function calc(){const product=products[$('cp-product').value],method=$('cp-method').value,mat=$('cp-material').value,qty=Math.max(1,+$('cp-qty').value||1);let total=0,materialCost=0,work=0,setup=0,discount=0;
+ if(method==='sublimation'){const base=data[method].materials[mat][1];const print=$('cp-print').value;const printMult=print==='large'?1.18:print==='double'?1.32:1;const baseCost=base*printMult;discount=qty>=50?.22:qty>=20?.16:qty>=10?.10:qty>=5?.05:0;const unit=baseCost*(1-discount);materialCost=unit*.72;work=unit*.28;setup=qty>1?120:150;total=Math.max(300,unit*qty+setup);}
+ else {const l=Math.max(10,+$('cp-l').value||100),w=Math.max(10,+$('cp-w').value||80),h=Math.max(1,+$('cp-h').value||40),fill=+$('cp-fill').value;const volume=l*w*h*product.shape;const effectiveVolume=volume*(.35+fill*.65);const density=data[method].materials[mat][2];const grams=Math.max(8,effectiveVolume/1000*density);const rate=data[method].materials[mat][1];materialCost=grams*rate;const hours=Math.max(.35,grams/(method==='fdm'?28:method==='sla'?22:55));work=data[method].machine*hours;setup=data[method].setup;const finish=1+(+$('cp-finish').value||0);const raw=(materialCost+work+setup)*finish;discount=qty>=100?.38:qty>=50?.30:qty>=20?.22:qty>=10?.14:qty>=5?.08:0;total=Math.max(method==='fdm'?350:500,raw*(1-discount));}
+ const low=total*.88,high=total*1.15;const per=total/qty;$('cp-price').innerHTML=`${money(total).replace(' ₽','')} <span>₽</span>`;$('cp-range').textContent=`Ориентир: ${money(low)} — ${money(high)} · ${money(per)} / шт.`;
+ const rows=[['Изделие',product.name],['Метод',data[method].name],['Материал / основа',data[method].materials[mat][0]],['Материал',money(materialCost)],['Работа / печать',money(work)],['Подготовка',money(setup)]];if(discount)rows.push(['Скидка за тираж',`−${Math.round(discount*100)}%`]);$('cp-breakdown').innerHTML=rows.map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join('');}
+ document.querySelectorAll('[data-product]').forEach(b=>b.addEventListener('click',()=>{$('cp-product').value=b.dataset.product;updateProducts();calc()}));
+ $('cp-methods').addEventListener('click',e=>{const b=e.target.closest('[data-method]');if(!b)return;$('cp-method').value=b.dataset.method;setActive('[data-method]','method',b.dataset.method);updateMaterials();calc()});
+ $('cp-materials').addEventListener('click',e=>{const b=e.target.closest('[data-material]');if(!b)return;$('cp-material').value=b.dataset.material;setActive('[data-material]','material',b.dataset.material);calc()});
+ $('cp-print-choices').addEventListener('click',e=>{const b=e.target.closest('[data-print]');if(!b)return;$('cp-print').value=b.dataset.print;setActive('[data-print]','print',b.dataset.print);calc()});
+ ['cp-l','cp-w','cp-h','cp-fill','cp-finish','cp-qty'].forEach(id=>$(id).addEventListener('input',calc));
+ updateProducts();calc();
+ const css=document.createElement('style');css.textContent=`
+ .cp-choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:8px}.cp-methods{grid-template-columns:repeat(4,minmax(0,1fr))}.cp-materials{grid-template-columns:repeat(4,minmax(0,1fr))}.cp-choice{min-height:58px;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 8px;border:1px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.025);color:#b8c2cc;font-size:10px;font-weight:800;cursor:pointer;transition:.18s}.cp-choice:hover{border-color:rgba(0,191,255,.45);transform:translateY(-1px)}.cp-choice.active{background:linear-gradient(135deg,rgba(0,191,255,.18),rgba(23,108,255,.10));border-color:rgba(0,191,255,.75);color:#fff;box-shadow:0 0 0 1px rgba(0,191,255,.08),0 7px 20px rgba(0,0,0,.2)}.cp-choice-icon{font-size:20px;line-height:1}.cp-dims{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cp-range{font-size:11px;color:#8fa1b2;margin:-2px 0 15px}.cp-breakdown{width:100%;display:grid;gap:0;margin-bottom:18px}.cp-breakdown div{display:flex;justify-content:space-between;gap:15px;font-size:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}.cp-breakdown span{color:#84909c}.cp-breakdown b{color:#dce4ec;text-align:right}.theme-light .cp-choice{background:rgba(255,255,255,.7);color:#52606d;border-color:#cbd6df}.theme-light .cp-choice.active{background:#eaf7ff;border-color:#00a8df;color:#17202a}.theme-light .cp-breakdown div{border-bottom-color:#dce4eb}.theme-light .cp-breakdown b{color:#26343f}
+ @media(max-width:900px){.cp-choices,.cp-methods,.cp-materials{grid-template-columns:repeat(2,minmax(0,1fr))}}
+ @media(max-width:480px){.cp-choices,.cp-methods,.cp-materials{grid-template-columns:1fr 1fr}.cp-choice{min-height:54px;font-size:9px}.cp-choice-icon{font-size:18px}.cp-dims{grid-template-columns:1fr}.cp-breakdown div{font-size:9px}}
+ `;document.head.appendChild(css);
 })();
